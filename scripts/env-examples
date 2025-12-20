@@ -1,0 +1,13 @@
+# pnas-lite 环境参数（可根据需要修改）
+# 外部监听端口
+PNAS_PORT=8000
+
+# 后端 JWT 密钥（请在生产环境替换为强随机值）
+JWT_SECRET=dev-secret
+
+# 容器内数据库连接（单镜像模式下本机 PostgreSQL）
+POSTGRES_PASSWORD=postgres
+DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/pnas
+
+# Dev Config
+PNAS_DEV_STORAGE_PATH=/home/zac/git/pnas/devdata
