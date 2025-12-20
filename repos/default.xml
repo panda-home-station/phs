@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="origin" fetch="http://gitlab.pandamicro.com/panda-home-station" />
+  
+  <default revision="refs/heads/main" remote="origin" sync-j="4" />
+  
+  <project name="nasserver.git" path="nasserver" remote="origin" revision="refs/heads/main" />
+  <project name="webdesktop.git" path="webdesktop" remote="origin" revision="refs/heads/main" />
+</manifest>
