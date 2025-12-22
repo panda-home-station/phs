@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="origin" fetch="http://gitlab.pandamicro.com/panda-home-station" />
+  
+  <default revision="refs/heads/main" remote="origin" sync-j="4" />
+  
+  <project name="isobuilder.git" path="tools/isobuilder" remote="origin" revision="refs/heads/main" />
+</manifest>

@@ -9,4 +9,7 @@
   
   <!-- Desktop related projects -->
   <include name="repos/desktop.xml" />
+  
+  <!-- Tools related projects -->
+  <include name="repos/tools.xml" />
 </manifest>
