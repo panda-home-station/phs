@@ -4,9 +4,5 @@
   
   <default revision="refs/heads/main" remote="origin" sync-j="4" />
   
-  <!-- NAS related projects -->
-  <include name="repos/nas.xml" />
-  
-  <!-- Desktop related projects -->
-  <include name="repos/desktop.xml" />
+  <project name="qizai-ui.git" path="desktop/qizai-ui" remote="origin" revision="refs/heads/main" />
 </manifest>

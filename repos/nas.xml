@@ -4,9 +4,6 @@
   
   <default revision="refs/heads/main" remote="origin" sync-j="4" />
   
-  <!-- NAS related projects -->
-  <include name="repos/nas.xml" />
-  
-  <!-- Desktop related projects -->
-  <include name="repos/desktop.xml" />
+  <project name="nasserver.git" path="nas/nasserver" remote="origin" revision="refs/heads/main" />
+  <project name="webdesktop.git" path="nas/webdesktop" remote="origin" revision="refs/heads/main" />
 </manifest>
