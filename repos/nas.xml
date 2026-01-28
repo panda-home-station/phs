@@ -7,5 +7,5 @@
   <project name="nasserver.git" path="nas/nasserver" remote="origin" revision="refs/heads/main" />
   <project name="webdesktop.git" path="nas/webdesktop" remote="origin" revision="refs/heads/main" />
   <project name="scripts.git" path="nas/scripts" remote="origin" revision="refs/heads/main" />
-  <project name="assets.git" path="nas/webdesktop/assets" remote="origin" revision="refs/heads/main">
+  <project name="assets.git" path="nas/webdesktop/assets" remote="origin" revision="refs/heads/main" />
 </manifest>
