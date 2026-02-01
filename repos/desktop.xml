@@ -5,7 +5,7 @@
   <default revision="refs/heads/main" remote="origin" sync-j="4" />
   
   <project name="jollypad.git" path="jollypad" remote="origin" revision="refs/heads/main" />
-  <project name="jolly-compositor.git" path="jollypad/catacomb" remote="origin" revision="refs/heads/main" />
+  <project name="jolly-compositor.git" path="jollypad/apps/catacomb" remote="origin" revision="refs/heads/main" />
   <project name="assets.git" path="jollypad/assets" remote="origin" revision="refs/heads/main" />
 
 </manifest>
