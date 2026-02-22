@@ -30,7 +30,7 @@
 
 2. 初始化仓库：
    ```bash
-   git clone http://gitlab.pandamicro.com/panda-home-station/phs.git
+   git clone https://github.com/panda-home-station/phs.git
    cd phs
    repo init . -m repos/default.xml
    ```
