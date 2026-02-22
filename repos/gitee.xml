@@ -2,7 +2,7 @@
 <manifest>
   <include name="repos/common.xml" />
   
-  <default revision="refs/heads/main" remote="origin" sync-j="4" />
+  <default revision="refs/heads/main" remote="gitee" sync-j="4" />
   
   <!-- NAS related projects -->
   <include name="repos/nas.xml" />

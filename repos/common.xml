@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="origin" fetch="http://gitlab.pandamicro.com/panda-home-station" />
+  <remote name="gitee" fetch="https://gitee.com/panda-home-station" />
+  <remote name="github" fetch="https://github.com/panda-home-station" />
+
+</manifest>
