@@ -13,6 +13,13 @@ _ensure_postgresql() {
   fi
 }
 
+task_check_nasserver_db() {
+  _ensure_postgresql
+  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1
+  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1
+  log_ok "Database objects present"
+}
+
 task_setup_nasserver_db() {
   log_section "Setup PostgreSQL for nasserver"
   _ensure_postgresql
@@ -29,15 +36,6 @@ task_setup_nasserver_db() {
   else
     log_info "database exists: pnas_db"
   fi
-  su - postgres -c "psql -tAc \"ALTER DATABASE \\\"pnas_db\\\" OWNER TO \\\"nasserver\\\"\"" || true
-  su - postgres -c "psql -tAc \"GRANT ALL PRIVILEGES ON DATABASE \\\"pnas_db\\\" TO \\\"nasserver\\\"\"" || true
-  su - postgres -c "psql -d pnas_db -tAc \"GRANT ALL ON SCHEMA public TO \\\"nasserver\\\"\"" || true
-  log_ok "PostgreSQL initialized for nasserver"
-}
-
-task_check_nasserver_db() {
-  _ensure_postgresql
-  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1
-  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1
-  log_ok "Database objects present"
+  task_check_nasserver_db
+  log_ok "PostgreSQL for nasserver ready"
 }
