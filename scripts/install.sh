@@ -3,7 +3,6 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
 . "$SCRIPT_DIR/tasks/deps.sh"
-. "$SCRIPT_DIR/tasks/db.sh"
 . "$SCRIPT_DIR/tasks/service.sh"
 . "$SCRIPT_DIR/tasks/build.sh"
 . "$SCRIPT_DIR/tasks/install_deb.sh"
@@ -11,10 +10,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 trap 'on_error $LINENO' ERR
 
 log_section "PHS INSTALL START"
-log_info "ensure nasserver user and nas group"
-ensure_nas_user_group
 task_install_deps
-task_setup_db
 task_build_nasserver_deb
 task_build_webdesktop_deb
 task_install_nasserver_deb

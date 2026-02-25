@@ -2,13 +2,11 @@
 set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
-. "$SCRIPT_DIR/tasks/db.sh"
 . "$SCRIPT_DIR/tasks/service.sh"
 task_start_services() {
   log_section "Start NAS via deb package"
   db_url="${DATABASE_URL:-postgresql://%2Fvar%2Frun%2Fpostgresql/pnas_db?user=${TARGET_USER}}"
   ensure_nas_user_group
-  task_setup_db
   deb="${NASSERVER_DEB:-}"
   if [ -z "${deb:-}" ]; then
     cand=""
