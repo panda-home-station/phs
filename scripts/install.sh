@@ -22,5 +22,5 @@ task_check_webdesktop_installation
 log_section "PHS INSTALL DONE"
 log_info "PHS has been installed successfully."
 IP="$(hostname -I | awk '{print $1}')"
-log_info "Web UI:  http://${IP}:6000"
+log_info "Web UI:  http://${IP}:8080"
 log_info "API:     http://${IP}:8000"
