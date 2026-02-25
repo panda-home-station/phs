@@ -21,7 +21,7 @@ task_check_nasserver_db() {
 }
 
 task_setup_nasserver_db() {
-  log_section "STEP 2/6: Setup PostgreSQL for nasserver"
+  log_section "STEP 2/5: Setup PostgreSQL for nasserver"
   _ensure_postgresql
   if ! $SUDO su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1; then
     $SUDO su - postgres -c "psql -tAc \"CREATE ROLE \\\"nasserver\\\" LOGIN\""

@@ -21,10 +21,10 @@ install_rust() {
   fi
 }
 task_install_deps() {
-  log_section "STEP 1/6: Install Base Dependencies"
+  log_section "STEP 1/5: Install Base Dependencies"
   log_info "apt update"
   apt_update
-  apt_install curl git ca-certificates build-essential pkg-config libasound2-dev libudev-dev libfuse3-dev libssl-dev postgresql postgresql-contrib
+  apt_install curl git ca-certificates build-essential pkg-config libasound2-dev libudev-dev libfuse3-dev libssl-dev postgresql postgresql-contrib libinput-dev libgbm-dev libdrm-dev libseat-dev libxkbcommon-dev
   log_info "install repo tool"
   ensure_repo_tool
   log_info "install Node.js 20"

@@ -4,7 +4,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
 
 task_install_nasserver_deb() {
-  log_section "STEP 5/6: Install nasserver deb package"
+  log_section "STEP 4.1/6: Install nasserver deb package"
   ARTIFACTS_DIR=""
   for dir in "${ROOT_DIR}/nas/nasserver/artifacts" "${ROOT_DIR}/nas/artifacts"; do
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
@@ -39,7 +39,7 @@ task_install_nasserver_deb() {
 }
 
 task_install_webdesktop_deb() {
-  log_section "STEP 6/6: Install webdesktop deb package"
+  log_section "STEP 4.2/5: Install webdesktop deb package"
   ARTIFACTS_DIR=""
   for dir in "${ROOT_DIR}/nas/webdesktop/artifacts" "${ROOT_DIR}/nas/artifacts"; do
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
@@ -61,6 +61,37 @@ task_install_webdesktop_deb() {
     log_ok "webdesktop installed"
   else
     log_err "webdesktop deb package not found in ${ARTIFACTS_DIR}"
+    exit 1
+  fi
+}
+
+task_install_jollypad_deb() {
+  log_section "STEP 4.3/5: Install jollypad deb package"
+  ARTIFACTS_DIR=""
+  for dir in "${ROOT_DIR}/jollypad/artifacts" "${ROOT_DIR}/nas/artifacts"; do
+    if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
+  done
+  
+  deb=$(ls -t "${ARTIFACTS_DIR}"/jollypad_*.deb 2>/dev/null | head -n1 || true)
+  if [ -n "${deb}" ]; then
+    STAGE_DIR="/tmp/phs-debs"
+    STAGED="${STAGE_DIR}/$(basename "${deb}")"
+    $SUDO mkdir -p "${STAGE_DIR}"
+    $SUDO cp -f "${deb}" "${STAGED}"
+    $SUDO chmod 644 "${STAGED}"
+    log_info "Installing ${STAGED}"
+    if ! $SUDO apt-get install --reinstall --allow-downgrades -y "${STAGED}"; then
+      log_err "Failed to install jollypad deb package"
+      exit 1
+    fi
+    $SUDO rm -f "${STAGED}"
+    
+    # Note: We do NOT enable a global systemd service here because JollyPad
+    # is designed to be launched as a Wayland session via GDM/Display Manager.
+    
+    log_ok "jollypad installed"
+  else
+    log_err "jollypad deb package not found in ${ARTIFACTS_DIR}"
     exit 1
   fi
 }

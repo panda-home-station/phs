@@ -15,12 +15,18 @@ task_install_deps
 task_setup_nasserver_db
 task_build_nasserver_deb
 task_build_webdesktop_deb
+task_build_jollypad_deb
 task_install_nasserver_deb
 task_install_webdesktop_deb
+task_install_jollypad_deb
 task_check_nasserver_service
 task_check_webdesktop_installation
 log_section "PHS INSTALL DONE"
 log_info "PHS has been installed successfully."
 IP="$(hostname -I | awk '{print $1}')"
-log_info "Web UI:  http://${IP}:8080"
 log_info "API:     http://${IP}:8000"
+log_info "--------------------------------------"
+log_info "🎉 Web UI deployed successfully!"
+log_info ""
+log_info "Visit ${YELLOW}http://${IP}:8080${RESET} to access the Web UI."
+log_info "--------------------------------------"
