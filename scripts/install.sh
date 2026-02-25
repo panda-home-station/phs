@@ -5,12 +5,14 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$SCRIPT_DIR/tasks/deps.sh"
 . "$SCRIPT_DIR/tasks/service.sh"
 . "$SCRIPT_DIR/tasks/build.sh"
+. "$SCRIPT_DIR/tasks/db_setup.sh"
 . "$SCRIPT_DIR/tasks/install_deb.sh"
 
 trap 'on_error $LINENO' ERR
 
 log_section "PHS INSTALL START"
 task_install_deps
+task_setup_nasserver_db
 task_build_nasserver_deb
 task_build_webdesktop_deb
 task_install_nasserver_deb
