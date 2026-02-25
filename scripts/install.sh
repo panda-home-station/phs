@@ -19,4 +19,6 @@ task_check_nasserver_service
 task_check_webdesktop_installation
 log_section "PHS INSTALL DONE"
 log_info "PHS has been installed successfully."
-log_info "You can access it at: http://$(hostname -I | awk '{print $1}'):8000"
+IP="$(hostname -I | awk '{print $1}')"
+log_info "Web UI:  http://${IP}:6000"
+log_info "API:     http://${IP}:8000"

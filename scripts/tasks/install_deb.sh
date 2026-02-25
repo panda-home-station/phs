@@ -10,16 +10,19 @@ task_install_nasserver_deb() {
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
   done
   
-  # Fix permission for _apt user to access deb files
-  $SUDO chmod -R a+rX "${ARTIFACTS_DIR}"
-  
   deb=$(ls -t "${ARTIFACTS_DIR}"/nasserver_*.deb 2>/dev/null | head -n1 || true)
   if [ -n "${deb}" ]; then
-    log_info "Installing ${deb}"
-    if ! $SUDO apt-get install -y "${deb}"; then
+    STAGE_DIR="/tmp/phs-debs"
+    STAGED="${STAGE_DIR}/$(basename "${deb}")"
+    $SUDO mkdir -p "${STAGE_DIR}"
+    $SUDO cp -f "${deb}" "${STAGED}"
+    $SUDO chmod 644 "${STAGED}"
+    log_info "Installing ${STAGED}"
+    if ! $SUDO apt-get install --reinstall -y "${STAGED}"; then
       log_err "Failed to install nasserver deb package"
       exit 1
     fi
+    $SUDO rm -f "${STAGED}"
     $SUDO systemctl daemon-reload
     $SUDO systemctl enable phs-nasserver.service
     log_info "Restarting phs-nasserver.service..."
@@ -42,16 +45,19 @@ task_install_webdesktop_deb() {
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
   done
   
-  # Fix permission for _apt user to access deb files
-  $SUDO chmod -R a+rX "${ARTIFACTS_DIR}"
-  
   deb=$(ls -t "${ARTIFACTS_DIR}"/webdesktop_*.deb 2>/dev/null | head -n1 || true)
   if [ -n "${deb}" ]; then
-    log_info "Installing ${deb}"
-    if ! $SUDO apt-get install -y "${deb}"; then
+    STAGE_DIR="/tmp/phs-debs"
+    STAGED="${STAGE_DIR}/$(basename "${deb}")"
+    $SUDO mkdir -p "${STAGE_DIR}"
+    $SUDO cp -f "${deb}" "${STAGED}"
+    $SUDO chmod 644 "${STAGED}"
+    log_info "Installing ${STAGED}"
+    if ! $SUDO apt-get install -y "${STAGED}"; then
       log_err "Failed to install webdesktop deb package"
       exit 1
     fi
+    $SUDO rm -f "${STAGED}"
     log_ok "webdesktop installed"
   else
     log_err "webdesktop deb package not found in ${ARTIFACTS_DIR}"
