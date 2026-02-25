@@ -7,7 +7,7 @@ _ensure_postgresql() {
   if require_cmd systemctl; then
     $SUDO systemctl enable --now postgresql || true
   fi
-  if ! su - postgres -c "psql -tAc 'SELECT 1'" | grep -q 1; then
+  if ! $SUDO su - postgres -c "psql -tAc 'SELECT 1'" | grep -q 1; then
     log_err "PostgreSQL unavailable"
     exit 1
   fi
@@ -15,23 +15,23 @@ _ensure_postgresql() {
 
 task_check_nasserver_db() {
   _ensure_postgresql
-  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1
-  su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1
+  $SUDO su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1
+  $SUDO su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1
   log_ok "Database objects present"
 }
 
 task_setup_nasserver_db() {
-  log_section "Setup PostgreSQL for nasserver"
+  log_section "STEP 2/5: Setup PostgreSQL for nasserver"
   _ensure_postgresql
-  if ! su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1; then
-    su - postgres -c "psql -tAc \"CREATE ROLE \\\"nasserver\\\" LOGIN\""
+  if ! $SUDO su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nasserver'\"" | grep -q 1; then
+    $SUDO su - postgres -c "psql -tAc \"CREATE ROLE \\\"nasserver\\\" LOGIN\""
     log_info "role created: nasserver"
   else
-    su - postgres -c "psql -tAc \"ALTER ROLE \\\"nasserver\\\" LOGIN\""
+    $SUDO su - postgres -c "psql -tAc \"ALTER ROLE \\\"nasserver\\\" LOGIN\""
     log_info "role ensured: nasserver"
   fi
-  if ! su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1; then
-    su - postgres -c "createdb -O \\\"nasserver\\\" \\\"pnas_db\\\""
+  if ! $SUDO su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='pnas_db'\"" | grep -q 1; then
+    $SUDO su - postgres -c "createdb -O \\\"nasserver\\\" \\\"pnas_db\\\""
     log_info "database created: pnas_db"
   else
     log_info "database exists: pnas_db"
