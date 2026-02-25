@@ -12,7 +12,7 @@ task_start_services() {
   deb="${NASSERVER_DEB:-}"
   if [ -z "${deb:-}" ]; then
     cand=""
-    for dir in "${ROOT_DIR}/nas/artifacts" "${ROOT_DIR}/nas/nasserver/target/debian" "${ROOT_DIR}/nas"; do
+    for dir in "${ROOT_DIR}/nas/nasserver/artifacts" "${ROOT_DIR}/nas/artifacts" "${ROOT_DIR}/nas/nasserver/target/debian" "${ROOT_DIR}/nas"; do
       if [ -d "$dir" ]; then
         f=$(ls -t "$dir"/*nasserver*".deb" 2>/dev/null | head -n1 || true)
         if [ -n "${f:-}" ]; then cand="$f"; break; fi

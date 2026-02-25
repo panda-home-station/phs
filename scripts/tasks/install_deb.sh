@@ -5,7 +5,10 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 
 task_install_nasserver_deb() {
   log_section "Install nasserver deb package"
-  ARTIFACTS_DIR="${ROOT_DIR}/nas/artifacts"
+  ARTIFACTS_DIR=""
+  for dir in "${ROOT_DIR}/nas/nasserver/artifacts" "${ROOT_DIR}/nas/artifacts"; do
+    if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
+  done
   
   # Fix permission for _apt user to access deb files
   $SUDO chmod -R a+rX "${ARTIFACTS_DIR}"
@@ -34,7 +37,10 @@ task_install_nasserver_deb() {
 
 task_install_webdesktop_deb() {
   log_section "Install webdesktop deb package"
-  ARTIFACTS_DIR="${ROOT_DIR}/nas/artifacts"
+  ARTIFACTS_DIR=""
+  for dir in "${ROOT_DIR}/nas/webdesktop/artifacts" "${ROOT_DIR}/nas/artifacts"; do
+    if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
+  done
   
   # Fix permission for _apt user to access deb files
   $SUDO chmod -R a+rX "${ARTIFACTS_DIR}"

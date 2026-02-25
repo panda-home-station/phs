@@ -24,14 +24,14 @@ task_build_webdesktop_deb() {
   log_section "Build webdesktop deb package"
   (
     cd "${ROOT_DIR}/nas/webdesktop"
-    if [ -f package_deb.sh ]; then
-      if ! bash package_deb.sh; then
+    if [ -f .ci/package_deb.sh ]; then
+      if ! bash .ci/package_deb.sh; then
         log_err "Failed to build webdesktop deb package"
         exit 1
       fi
       log_ok "webdesktop deb package built"
     else
-      log_err "webdesktop packaging script not found: ${ROOT_DIR}/nas/webdesktop/package_deb.sh"
+      log_err "webdesktop packaging script not found: ${ROOT_DIR}/nas/webdesktop/.ci/package_deb.sh"
       exit 1
     fi
   )
