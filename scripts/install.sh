@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
 . "$SCRIPT_DIR/tasks/deps.sh"
 . "$SCRIPT_DIR/tasks/db.sh"
-. "$SCRIPT_DIR/tasks/repo.sh"
 . "$SCRIPT_DIR/tasks/service.sh"
-. "$SCRIPT_DIR/tasks/session.sh"
+. "$SCRIPT_DIR/tasks/build.sh"
+. "$SCRIPT_DIR/tasks/install_deb.sh"
+
+trap 'on_error $LINENO' ERR
 
 log_section "PHS INSTALL START"
+log_info "ensure nasserver user and nas group"
+ensure_nas_user_group
 task_install_deps
 task_setup_db
-task_setup_repo
-task_write_nas_service
-task_write_jolly_session
+task_build_nasserver_deb
+task_build_webdesktop_deb
+task_install_nasserver_deb
+task_install_webdesktop_deb
+task_check_nasserver_service
+task_check_webdesktop_installation
 log_section "PHS INSTALL DONE"
-log_info "NAS service enabled; JollyPad will appear after reboot in login sessions"
+log_info "PHS has been installed successfully."
+log_info "You can access it at: http://$(hostname -I | awk '{print $1}'):8000"

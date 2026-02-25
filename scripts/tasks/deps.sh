@@ -24,7 +24,6 @@ task_install_deps() {
   log_section "STEP 1/5: Install Base Dependencies"
   log_info "apt update"
   apt_update
-  log_info "apt install: curl git ca-certificates build-essential pkg-config libasound2-dev libudev-dev libfuse3-dev libssl-dev postgresql postgresql-contrib"
   apt_install curl git ca-certificates build-essential pkg-config libasound2-dev libudev-dev libfuse3-dev libssl-dev postgresql postgresql-contrib
   log_info "install repo tool"
   ensure_repo_tool

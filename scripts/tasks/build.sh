@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
+. "$SCRIPT_DIR/lib/common.sh"
+
+task_build_nasserver_deb() {
+  log_section "Build nasserver deb package"
+  (
+    cd "${ROOT_DIR}/nas/nasserver"
+    if [ -f .ci/package_deb.sh ]; then
+      if ! bash .ci/package_deb.sh; then
+        log_err "Failed to build nasserver deb package"
+        exit 1
+      fi
+      log_ok "nasserver deb package built"
+    else
+      log_err "nasserver packaging script not found: ${ROOT_DIR}/nas/nasserver/.ci/package_deb.sh"
+      exit 1
+    fi
+  )
+}
+
+task_build_webdesktop_deb() {
+  log_section "Build webdesktop deb package"
+  (
+    cd "${ROOT_DIR}/nas/webdesktop"
+    if [ -f package_deb.sh ]; then
+      if ! bash package_deb.sh; then
+        log_err "Failed to build webdesktop deb package"
+        exit 1
+      fi
+      log_ok "webdesktop deb package built"
+    else
+      log_err "webdesktop packaging script not found: ${ROOT_DIR}/nas/webdesktop/package_deb.sh"
+      exit 1
+    fi
+  )
+}

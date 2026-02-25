@@ -2,30 +2,28 @@
 set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
-task_write_nas_service() {
-  log_section "STEP 4/5: Install NAS systemd Service"
-  svc="/etc/systemd/system/phs-nas.service"
-  tmp=$(mktemp)
-  cat >"$tmp" <<EOF
-[Unit]
-Description=Panda Home Station NAS (backend + web dev)
-After=network.target
-
-[Service]
-Type=simple
-User=${TARGET_USER}
-WorkingDirectory=${ROOT_DIR}
-Environment=PATH=/usr/local/bin:/usr/bin:/bin:${HOME}/.cargo/bin
-ExecStart=/bin/bash -lc 'cd "${ROOT_DIR}" && ./nas/scripts/run_dev.sh'
-Restart=on-failure
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-EOF
-  $SUDO mv "$tmp" "$svc"
-  $SUDO chmod 644 "$svc"
-  $SUDO systemctl daemon-reload
-  $SUDO systemctl enable --now phs-nas.service
-  log_ok "Service phs-nas.service installed and enabled"
+_check_nasserver_service() {
+  unit="phs-nasserver.service"
+  log_section "Check NAS systemd Service"
+  $SUDO systemctl daemon-reload || true
+  log_info "check unit exists: ${unit}"
+  if ! $SUDO systemctl cat "$unit" >/dev/null 2>&1; then
+    log_err "missing unit: ${unit}"
+    exit 1
+  fi
+  log_info "check unit enabled"
+  if ! $SUDO systemctl is-enabled --quiet "$unit"; then
+    log_err "not enabled: ${unit}"
+    exit 1
+  fi
+  log_info "check unit active"
+  if ! $SUDO systemctl is-active --quiet "$unit"; then
+    log_err "not active: ${unit}"
+    $SUDO systemctl status "$unit" --no-pager || true
+    $SUDO journalctl -u "$unit" -n 20 --no-pager || true
+    exit 1
+  fi
+  log_ok "service healthy: ${unit}"
 }
+task_check_nasserver_service() { _check_nasserver_service; }
+task_write_nasserver_service() { _check_nasserver_service; }
