@@ -12,6 +12,7 @@ trap 'on_error $LINENO' ERR
 
 log_section "PHS INSTALL START"
 task_install_deps
+task_repo_sync
 task_setup_nasserver_db
 task_build_nasserver_deb
 task_build_webdesktop_deb
@@ -21,6 +22,7 @@ task_install_webdesktop_deb
 task_install_jollypad_deb
 task_check_nasserver_service
 task_check_webdesktop_installation
+
 log_section "PHS INSTALL DONE"
 log_info "PHS has been installed successfully."
 IP="$(hostname -I | awk '{print $1}')"
