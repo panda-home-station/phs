@@ -4,7 +4,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
 
 task_install_nasserver_deb() {
-  log_section "Install nasserver deb package"
+  log_section "STEP 5/6: Install nasserver deb package"
   ARTIFACTS_DIR=""
   for dir in "${ROOT_DIR}/nas/nasserver/artifacts" "${ROOT_DIR}/nas/artifacts"; do
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
@@ -18,7 +18,7 @@ task_install_nasserver_deb() {
     $SUDO cp -f "${deb}" "${STAGED}"
     $SUDO chmod 644 "${STAGED}"
     log_info "Installing ${STAGED}"
-    if ! $SUDO apt-get install --reinstall -y "${STAGED}"; then
+    if ! $SUDO apt-get install --reinstall --allow-downgrades -y "${STAGED}"; then
       log_err "Failed to install nasserver deb package"
       exit 1
     fi
@@ -39,7 +39,7 @@ task_install_nasserver_deb() {
 }
 
 task_install_webdesktop_deb() {
-  log_section "Install webdesktop deb package"
+  log_section "STEP 6/6: Install webdesktop deb package"
   ARTIFACTS_DIR=""
   for dir in "${ROOT_DIR}/nas/webdesktop/artifacts" "${ROOT_DIR}/nas/artifacts"; do
     if [ -d "$dir" ]; then ARTIFACTS_DIR="$dir"; break; fi
@@ -53,7 +53,7 @@ task_install_webdesktop_deb() {
     $SUDO cp -f "${deb}" "${STAGED}"
     $SUDO chmod 644 "${STAGED}"
     log_info "Installing ${STAGED}"
-    if ! $SUDO apt-get install -y "${STAGED}"; then
+    if ! $SUDO apt-get install --reinstall --allow-downgrades -y "${STAGED}"; then
       log_err "Failed to install webdesktop deb package"
       exit 1
     fi

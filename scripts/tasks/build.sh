@@ -4,7 +4,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 . "$SCRIPT_DIR/lib/common.sh"
 
 task_build_nasserver_deb() {
-  log_section "Build nasserver deb package"
+  log_section "STEP 3/5: Build nasserver deb package"
   (
     cd "${ROOT_DIR}/nas/nasserver"
     if [ -f .ci/package_deb.sh ]; then
@@ -21,7 +21,7 @@ task_build_nasserver_deb() {
 }
 
 task_build_webdesktop_deb() {
-  log_section "Build webdesktop deb package"
+  log_section "STEP 4/5: Build webdesktop deb package"
   (
     cd "${ROOT_DIR}/nas/webdesktop"
     if [ -f .ci/package_deb.sh ]; then
