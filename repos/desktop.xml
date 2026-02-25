@@ -2,7 +2,7 @@
 <manifest>
 
   <project name="jollypad.git" path="jollypad" remote="origin" revision="refs/heads/main" />
-  <project name="jolly-compositor.git" path="jollypad/apps/catacomb" remote="origin" revision="refs/heads/main" />
+  <project name="jolly-compositor.git" path="jollypad/crates/catacomb" remote="origin" revision="refs/heads/main" />
   <project name="assets.git" path="jollypad/assets" remote="origin" revision="refs/heads/main" />
 
 </manifest>
