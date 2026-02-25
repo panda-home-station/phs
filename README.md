@@ -40,17 +40,34 @@ This repository uses Google's `repo` tool to manage multiple Git projects.
    repo sync
    ```
 
-### Common Commands
-
-- **Sync latest changes**: `repo sync`
-- **Start a new branch**: `repo start <branch_name> --all`
-- **Upload changes**: `repo upload`
-
 ## Development Guide
 
-### 1. JollyPad (Game Console Interface)
+To simplify deployment, this repository provides a one‑click installation script for Panda Home Station.
+Currently, only Ubuntu/Debian systems are supported.
 
-JollyPad is a native interface developed in Rust and can be run directly via Cargo.
+After cloning the repository, run:
+
+```bash
+./scripts/install.sh
+```
+
+Once the script completes, the system is ready to use.
+
+### 1. NAS Access
+After installation, you will see output similar to:
+
+```
+➡️  --------------------------------------
+➡️  🎉 Web UI deployed successfully!
+➡️
+➡️  Visit http://<your_ip>:8080 to access the Web UI.
+➡️  --------------------------------------
+```
+Open your browser and visit: `http://<your_ip>:8080`
+
+### 2. JollyPad (Game Console Interface)
+
+After successful installation, JollyPad is added to the session list of your display manager. On Ubuntu, simply choose “JollyPad” on the login screen to enter the console UI.
 
 **Prerequisites:**
 - Rust (Cargo)
@@ -86,29 +103,4 @@ WINEDEBUG=fixme+all,err+all
 Steam_Language=schinese
 ```
 
-### 2. NAS (Web Server & Desktop)
-
-The NAS component consists of a Rust backend (nasserver) and a React frontend (webdesktop).
-
-**Prerequisites:**
-- Rust (Cargo)
-- Node.js (v18+) & npm
-- PostgreSQL (requires creating a `pnas_db` database)
-- System Libraries: `libfuse3-dev`, `pkg-config`, `libssl-dev`
-
-**One-Click Start (Recommended):**
-The project provides a development script to start both backend and frontend services simultaneously:
-
-```bash
-# 1. Ensure PostgreSQL is running and the database is created
-# Default connection URL: postgres://postgres@localhost/pnas_db or using peer auth
-createdb pnas_db
-
-# 2. Run the development script
-./nas/scripts/run_dev.sh
-```
-
-The script will automatically:
-- Start the Rust backend (port 8000)
-- Start the Web frontend (port 5173)
-- Handle file system mount cleanup
+---

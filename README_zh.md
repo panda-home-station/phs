@@ -4,7 +4,7 @@
 
 ![Panda Home Station Showcase](docs/show_pic1.png)
 
-**Panda Home Station** 是一个全新的系统，将网络附加存储（NAS）系统和高性能游戏主机合二为一。该系统的目标是成为终极的**家庭数据中心**，能够满足数据存储、游戏主机的需求，同时提供 Web 桌面环境与桌面游戏环境。
+**Panda Home Station** 是一个全新的系统，将网络附加存储（NAS）系统和高性能游戏主机合二为一。该系统的目标是实现一个全新的**家庭数据中心**，能够同时满足数据存储、游戏主机的需求。同时提供 Web 桌面环境与桌面游戏环境。
 
 ## 核心特性
 
@@ -40,17 +40,32 @@
    repo sync
    ```
 
-### 常用命令
-
-- **同步最新更改**：`repo sync`
-- **开始新分支**：`repo start <branch_name> --all`
-- **上传更改**：`repo upload`
-
 ## 开发指南
 
-### 1. JollyPad (游戏主机界面)
+为了更方便的部署，此仓库实现一个一键部署脚本，用于快速部署Panda Home Station系统。
 
-JollyPad 是基于 Rust 开发的原生界面，可以直接通过 Cargo 运行。
+目前仅支持在 Ubuntu/Debian 系统上部署。
+
+在完成仓库克隆之后。执行以下命令即可部署系统：
+
+```bash
+./scripts/install.sh
+```
+提示完成部署即可使用。
+
+### 1. NAS 访问
+安装完成之后，会有如下提示：
+```
+➡️  --------------------------------------
+➡️  🎉 Web UI deployed successfully!
+➡️
+➡️  Visit http://<your_ip>:8080 to access the Web UI.
+➡️  --------------------------------------
+```
+直接浏览器访问： `http://<your_ip>:8080` 即可
+
+### 2. JollyPad (游戏主机界面)
+在成功安装完成之后，JollyPad会写入到登录器的选择界面，ubuntu只用在登录的时候选择JollyPad即可登录到游戏主机界面。
 
 **前置依赖：**
 - Rust (Cargo)
@@ -85,30 +100,3 @@ PROTON_LOG=1
 WINEDEBUG=fixme+all,err+all
 Steam_Language=schinese
 ```
-
-### 2. NAS (Web 服务端与桌面)
-
-NAS 部分包含 Rust 后端 (nasserver) 和 React 前端 (webdesktop)。
-
-**前置依赖：**
-- Rust (Cargo)
-- Node.js (v18+) & npm
-- PostgreSQL (需创建 `pnas_db` 数据库)
-- 系统库：`libfuse3-dev`, `pkg-config`, `libssl-dev`
-
-**一键启动 (推荐)：**
-项目提供了开发脚本，可同时启动前后端服务：
-
-```bash
-# 1. 确保 PostgreSQL 正在运行且已创建数据库
-# 默认配置连接地址：postgres://postgres@localhost/pnas_db 或使用 peer auth
-createdb pnas_db
-
-# 2. 运行开发脚本
-./nas/scripts/run_dev.sh
-```
-
-脚本将自动：
-- 启动 Rust 后端 (端口 8000)
-- 启动 Web 前端 (端口 5173)
-- 处理文件系统挂载清理
