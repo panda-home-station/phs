@@ -44,6 +44,105 @@ install_rust() {
   fi
 }
 
+install_docker() {
+  log_info "Installing Docker..."
+
+  # Check if Docker is already installed
+  if require_cmd docker; then
+    log_ok "Docker already installed, skipping..."
+    return 0
+  fi
+
+  # Install Docker dependencies
+  log_info "Installing Docker dependencies..."
+  apt_install ca-certificates curl gnupg lsb-release
+
+  # Add Docker's official GPG key
+  log_info "Adding Docker GPG key..."
+  $SUDO install -m 0755 -d /etc/apt/keyrings
+
+  # Try to download GPG key from official source first, then try Alibaba Cloud mirror
+  if curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
+    log_info "Downloaded GPG key from official Docker repository"
+    DOCKER_MIRROR_BASE="https://download.docker.com/linux/ubuntu"
+  elif curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | $SUDO gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
+    log_info "Downloaded GPG key from Alibaba Cloud mirror"
+    DOCKER_MIRROR_BASE="https://mirrors.aliyun.com/docker-ce/linux/ubuntu"
+  else
+    log_err "Failed to download Docker GPG key from both sources"
+    return 1
+  fi
+  $SUDO chmod a+r /etc/apt/keyrings/docker.gpg
+
+  # Set up Docker repository
+  log_info "Setting up Docker repository..."
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] ${DOCKER_MIRROR_BASE} \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  # Install Docker Engine
+  log_info "Installing Docker Engine..."
+  apt_update
+  apt_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+  # Enable and start Docker service
+  log_info "Starting Docker service..."
+  $SUDO systemctl enable docker
+  $SUDO systemctl start docker
+
+  # Add current user to docker group
+  log_info "Adding current user to docker group..."
+  $SUDO usermod -aG docker "$USER"
+
+  log_ok "Docker installed successfully"
+
+  # Check for NVIDIA GPU
+  log_info "Checking for NVIDIA GPU..."
+  if command -v lspci >/dev/null 2>&1 && lspci | grep -i nvidia >/dev/null 2>&1; then
+    log_info "NVIDIA GPU detected, installing NVIDIA Container Toolkit..."
+
+    # Add NVIDIA Container Toolkit repository
+    $SUDO apt-get install -y ca-certificates curl gnupg
+
+    # Try to download NVIDIA GPG key
+    if curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg 2>/dev/null; then
+      log_info "Downloaded NVIDIA GPG key from official repository"
+    else
+      log_warn "Failed to download NVIDIA GPG key, skipping NVIDIA Container Toolkit installation"
+      return 0
+    fi
+
+    # Download and configure NVIDIA repository list
+    if curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list 2>/dev/null | \
+      sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+      $SUDO tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null; then
+      log_info "Configured NVIDIA repository list"
+    else
+      log_warn "Failed to configure NVIDIA repository list, skipping NVIDIA Container Toolkit installation"
+      return 0
+    fi
+
+    # Install NVIDIA Container Toolkit
+    apt_update
+    if apt_install nvidia-container-toolkit 2>/dev/null; then
+      # Configure Docker to use NVIDIA runtime
+      log_info "Configuring Docker NVIDIA runtime..."
+      $SUDO nvidia-ctk runtime configure --runtime=docker
+
+      # Restart Docker to apply changes
+      $SUDO systemctl restart docker
+
+      log_ok "NVIDIA Container Toolkit installed and configured"
+      log_warn "You may need to log out and log back in for group changes to take effect"
+    else
+      log_warn "Failed to install NVIDIA Container Toolkit, but Docker will still work without GPU support"
+    fi
+  else
+    log_info "No NVIDIA GPU detected, skipping NVIDIA Container Toolkit installation"
+  fi
+}
+
 task_install_deps() {
   log_section "STEP 1/5: Install Base Dependencies"
   log_info "apt update"
@@ -55,6 +154,8 @@ task_install_deps() {
   install_node20
   log_info "install Rust toolchain"
   install_rust
+  log_info "install Docker"
+  install_docker
   log_ok "Dependencies installed"
 }
 

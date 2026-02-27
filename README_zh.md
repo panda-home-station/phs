@@ -67,18 +67,8 @@
 ### 2. JollyPad (游戏主机界面)
 在成功安装完成之后，JollyPad会写入到登录器的选择界面，ubuntu只用在登录的时候选择JollyPad即可登录到游戏主机界面。
 
-**前置依赖：**
-- Rust (Cargo)
-- 系统库：`libasound2-dev`, `libudev-dev`, `pkg-config` (Ubuntu/Debian 示例)
-
-**编译与运行：**
-```bash
-cd jollypad
-cargo run --release --bin jolly-launcher
-```
-
 **手动配置游戏路径：**
-目前 JollyPad 需要手动配置游戏路径。请在 `~/.jolly/app/` 目录下创建 `.ini` 配置文件（例如 `com.localhost.split.ini`），内容如下：
+目前 JollyPad 需要手动配置游戏路径。请在 `~/.jolly/app/` 目录下创建 `.ini` 配置文件（例如 `com.localhost.split.ini`），内容参考如下，针对不同的配置，不同的游戏需要不同的配置：
 
 ```ini
 [Game]
