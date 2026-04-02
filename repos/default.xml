@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+  <remote name="origin" fetch="https://github.com" review="review.example.com" />
+
+  <default remote="origin" revision="main" sync-j="4" />
+
+  <project path="webui" name="truenas/webui" revision="master" />
+  <project path="webdesktop" name="panda-home-station/webdesktop" revision="truenas" />
+
+</manifest>
