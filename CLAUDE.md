@@ -1,82 +1,21 @@
-# TrueNAS WebUI Migration Project
+# Panda Home Station
 
-This directory contains two repositories for migrating TrueNAS WebUI from Angular to React.
+**Panda Home Station** 是一个全新的系统，将网络附加存储（NAS）系统和高性能游戏主机合二为一。该系统的目标是实现一个全新的**家庭数据中心**，能够同时满足数据存储、游戏主机的需求。同时提供 Web 桌面环境与桌面游戏环境。
 
 ## Repositories
+PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库用来作为repo的管理以及项目入口。其中包含子仓库：
 
-### `webui/` - Original Angular Application
-- **Framework**: Angular 21.2
-- **Technology**: TypeScript, NgRx, Angular Material
-- **API**: WebSocket (JSON-RPC 2.0)
-- **Status**: Production (original implementation)
-- **Purpose**: Source of truth for business logic, API methods, and type definitions
+- webui: truenas原始的完整web系统
+- webdesktop：使用 React 开发的一个webdesktop前端系统，一个完整的桌面系统
 
-### `webdesktop/` - New React Application (Target)
-- **Framework**: React 18 + Vite
-- **Technology**: TypeScript, webdesktop UI framework
-- **API**: WebSocket (JSON-RPC 2.0) - to be migrated
-- **Status**: Development (branch: `truenas`)
-- **Purpose**: Modern replacement with desktop-like UI
+## Working
+当前的目标是将 webui的功能完全迁移到 webdesktop上面，实现一个nas web桌面，而不是仅仅一个webui。
 
-## Migration Strategy
+## Document Reference (需要时读取)
 
-### Goal
-Replace Angular webui with React-based webdesktop implementation while maintaining all TrueNAS functionality.
+### 1.1 子系统的Claude.md文件
+- webui/Claude.md
+- webdesktop/Claude.md
 
-### Approach
-1. **Use webdesktop as UI framework base**
-   - Window management system
-   - Desktop environment (Desktop, Taskbar, Launcher)
-   - Modern UI components
-
-2. **Migrate business logic from webui**
-   - WebSocket API services
-   - Type definitions and interfaces
-   - Helper functions
-   - Domain-specific logic
-
-3. **Create TrueNAS applications as desktop apps**
-   - Each TrueNAS module (Storage, Settings, Dashboard, etc.) becomes a desktop app
-   - Apps run in windows managed by webdesktop
-
-## Current Status
-
-### ✅ Completed
-- Created `truenas` branch in webdesktop
-- Removed original webdesktop business apps
-- Removed original REST API layer
-- Set up TrueNAS API structure (WebSocket client placeholder)
-- Simplified App.tsx
-
-### 🚧 In Progress
-- Migrating TrueNAS WebSocket API service from webui
-- Porting type definitions from webui/src/interfaces/
-
-### 📋 Planned
-- Port authentication system
-- Create Dashboard app
-- Port other TrueNAS modules (Storage, Settings, Network, etc.)
-
-## Development Workflow
-
-### Working on webdesktop
-```bash
-cd webdesktop
-npm run dev  # http://localhost:5173
-```
-
-### Reference webui code
-```bash
-cd webui
-# Browse source files at:
-# src/app/modules/websocket/ - WebSocket implementation
-# src/app/interfaces/ - Type definitions
-# src/app/helpers/ - Utilities
-```
-
-## Notes
-
-- This is a complete rewrite, not a direct translation
-- Focus on modern UI/UX with desktop-like interface
-- All business logic should be ported from webui
-- webui remains the reference until migration is complete
+### 1.2 Documents
+TODO
