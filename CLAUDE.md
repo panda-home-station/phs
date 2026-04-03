@@ -22,30 +22,30 @@ PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库�
 
 **说明**: 这是 TrueNAS 的开发者文档，面向参与 TrueNAS 开发的开发者。文档采用 Sphinx 格式，涵盖了系统架构、开发流程、构建、测试、以及各个子系统的实现细节。
 
-#### 一级文档索引 (middleware/docs/source/index.rst)
+#### 一级文档索引 (middleware/docs/)
 
 | 文件 | 说明 |
 |------|------|
-| index.rst | 文档首页，包含所有模块的目录索引 |
+| middleware/docs/source/index.rst | 文档首页，包含所有模块的目录索引 |
 
 #### 二级文档目录
 middleware/docs/source路径下子目录
 
 | 目录 | 说明 |
 |------|------|
-| accounts | 账户系统首页 |
-| api | API 系统首页 |
-| audit | 审计系统首页 |
-| build | 构建系统首页 |
-| database | 数据库首页 |
-| dev-workspace | 开发工作区首页 |
-| external-services | 外部服务首页 |
-| middleware | 中间件首页 |
-| middleware/plugins | 插件首页 |
-| os | OS 首页 |
-| services | 服务首页 |
-| simulating | 模拟首页 |
-| testing/integration-tests | 集成测试首页 |
+| middleware/docs/source/accounts | 账户系统首页 |
+| middleware/docs/source/api | API 系统首页 |
+| middleware/docs/source/audit | 审计系统首页 |
+| middleware/docs/source/build | 构建系统首页 |
+| middleware/docs/source/database | 数据库首页 |
+| middleware/docs/source/dev-workspace | 开发工作区首页 |
+| middleware/docs/source/external-services | 外部服务首页 |
+| middleware/docs/source/middleware | 中间件首页 |
+| middleware/docs/source/middleware/plugins | 插件首页 |
+| middleware/docs/source/os | OS 首页 |
+| middleware/docs/source/services | 服务首页 |
+| middleware/docs/source/simulating | 模拟首页 |
+| middleware/docs/source/testing/integration-tests | 集成测试首页 |
 
 ### 1.3 Middlewared 文档索引(需要时读取) (middleware/src/middlewared/)
 
