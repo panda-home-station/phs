@@ -15,6 +15,40 @@ PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库�
 ## 开发
 开发调试都在webdesktop目录下，npm运行也需要在webdesktop目录下。
 
+## 多仓库工作上下文
+
+### 当前活跃子仓库
+
+`.claude/current` 文件标记了当前活跃的子仓库。读取该文件来判断操作目标：
+
+```
+cat .claude/current
+```
+
+### 自动检测规则
+
+如果 `.claude/current` 为空，则通过 `git diff --name-only` 检测最近修改涉及的子仓库。
+
+### 双轨制工作模式
+
+| 层级 | 职责 | 命令入口 |
+|------|------|----------|
+| **顶层** | 协调/聚合，跨仓库操作决策 | 根目录 `.claude/commands/` |
+| **子仓库** | 独立完整的工作流 | `<sub-repo>/.claude/commands/` |
+
+当执行 `/commit` 等命令时：
+1. 读取 `.claude/current` 确定目标子仓库
+2. 如果为空，自动检测最近修改的子仓库
+3. 委托给对应子仓库的 commit 命令
+4. 如果跨多个子仓库修改，分别处理
+
+### 子仓库独立配置
+
+每个子仓库有完整的独立配置：
+- **webui**: `webui/.claude/` — Angular 项目工作流
+- **webdesktop**: `webdesktop/.claude/` — React 项目工作流
+- **middleware**: `middleware/.claude/` — Python 中间件工作流
+
 ## Document Reference (需要时读取)
 
 ### 1.1 子系统的Claude.md文件
