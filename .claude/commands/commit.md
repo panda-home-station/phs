@@ -9,7 +9,7 @@
 ./: 当前顶层仓库，主要负责子仓库的维护，以及AI上下文信息的维护
 ./webui: 旧前端代码
 ./middleware: 中间段代码
-./webdesktop：主要是前端的代码，上下文的文档包含 webdesktop/.claude/commands/commit.md
+./webdesktop：前端的代码，上下文的文档包含: webdesktop/.claude/commands/commit.md
 
 需要提交哪个仓库就在哪个仓库目录下进行操作。
 
