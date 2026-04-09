@@ -16,18 +16,7 @@ PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库�
 开发调试都在webdesktop目录下，npm运行也需要在webdesktop目录下。
 
 ## 多仓库工作上下文
-
-### 当前活跃子仓库
-
-`.claude/current` 文件标记了当前活跃的子仓库。读取该文件来判断操作目标：
-
-```
-cat .claude/current
-```
-
-### 自动检测规则
-
-如果 `.claude/current` 为空，则通过 `git diff --name-only` 检测最近修改涉及的子仓库。
+webdesktop/CLAUDE.md 文档是webdesktop仓库的上下文
 
 ### 双轨制工作模式
 

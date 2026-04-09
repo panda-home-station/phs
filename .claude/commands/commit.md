@@ -4,26 +4,14 @@
 
 ## 1. 确定目标子仓库
 
-### 读取当前活跃子仓库
+根据对话上下文信息判断当前修改的代码仓库，或者根据各个子仓库的git状态进行判断。
+其中包括：
+./: 当前顶层仓库，主要负责子仓库的维护，以及AI上下文信息的维护
+./webui: 旧前端代码
+./middleware: 中间段代码
+./webdesktop：主要是前端的代码，上下文的文档包含 webdesktop/.claude/commands/commit.md
 
-```bash
-cat .claude/current
-```
-
-- 如果文件存在且非空，使用其中指定的子仓库
-- 如果为空或不存在，执行自动检测
-
-### 自动检测
-
-```bash
-git diff --name-only HEAD | head -20
-```
-
-分析输出的文件路径，确定涉及的子仓库：
-- `webdesktop/*` → webdesktop
-- `webui/*` → webui
-- `middleware/*` → middleware
-- 顶层文件（如 `CLAUDE.md`、`.claude/*`）→ 顶层 repo
+需要提交哪个仓库就在哪个仓库目录下进行操作。
 
 ## 2. 单仓库变更
 
@@ -34,7 +22,7 @@ git diff --name-only HEAD | head -20
 cd <sub-repo>
 
 # 执行子仓库的 commit 命令（参见对应 .claude/commands/commit.md）
-# 注意：子仓库有独立的 commit 流程，包括 code review 和 test
+# 注意：子仓库有独立的 commit 流程需要读取子仓库的commit命令
 ```
 
 ## 3. 跨仓库变更
@@ -51,32 +39,3 @@ cd <sub-repo>
 ## 4. 顶层 Repo 变更
 
 如果只有顶层文件（`.claude/`、`CLAUDE.md` 等）变更，在顶层执行提交。
-
-### 顶层 Commit Message 格式
-
-```
-<type>: <subject>
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
-```
-
-**Type 类型**：
-- `repo`: repo 配置文件变更
-- `chore`: 构建/工具变更
-- `docs`: 文档变更
-
-## 5. 子仓库 Commit 委托
-
-每个子仓库有独立的 commit 命令，详情需要时读取对应文件：
-
-| 子仓库 | Commit 命令文件 |
-|--------|----------------|
-| webui | `webui/.claude/commands/commit.md` |
-| webdesktop | `webdesktop/.claude/commands/commit.md` |
-| middleware | 暂无独立配置，如有需要可参考其他子仓库创建 |
-
-## 注意事项
-
-- **不要在顶层直接执行子仓库的命令** — 先 `cd` 到对应目录
-- **子仓库的 commit 是独立流程** — 包含 review 和 test，不是简单 git commit
-- **跨仓库提交需要用户明确确认** — 多个子仓库同时修改时，先列出变更再逐个提交
