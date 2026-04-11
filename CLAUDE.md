@@ -15,8 +15,8 @@ PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库�
 ## 开发
 开发调试都在webdesktop目录下，npm运行也需要在webdesktop目录下。
 
-## 多仓库工作上下文
-webdesktop/CLAUDE.md 文档是webdesktop仓库的上下文
+## 多仓库工作上下文（需要时阅读）
+- webdesktop/CLAUDE.md: webdesktop仓库的上下文
 
 ### 双轨制工作模式
 
