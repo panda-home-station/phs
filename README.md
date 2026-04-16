@@ -4,14 +4,28 @@
 
 ## Project Introduction
 
-**OpenNAS** is a modern AI-native home NAS system, built on TrueNAS core technology. It provides enterprise-grade data storage capabilities with deep AI integration, offering intelligent data management and service experience for home users.
+**OpenNAS** is a modern AI-native home NAS system, built on **TrueNAS core technology** for secondary development. It provides enterprise-grade data storage capabilities with deep AI integration, offering intelligent data management and service experience for home users.
 
-### Core Features
+### Why TrueNAS?
+
+TrueNAS is an enterprise-grade open-source NAS solution with the following advantages:
+
+- **Security**: Built on FreeBSD with SELinux support, regular security patches, and a proven track record in enterprise environments
+- **Stability**: Mature and stable with 20+ years of development history, widely used in mission-critical deployments
+- **Enterprise Features**: Supports ZFS filesystem with data integrity protection, snapshots, replication, and advanced storage management
+- **Open Source**: Full source code availability, transparency, and community support
+- **Rich Protocols**: Comprehensive protocol support including SMB/NFS/iSCSI/AFP/SFTP
+
+### OpenNAS Core Features
+
+Based on TrueNAS core technology, OpenNAS enhances the following capabilities:
 
 - **AI-Native Architecture**: AI capabilities deeply integrated into the system core, supporting intelligent file management, automatic classification and retrieval
 - **Web Desktop**: Access a complete desktop environment through your browser, manage data anytime, anywhere
 - **Enterprise Storage**: Supports multiple storage protocols (SMB/NFS/iSCSI) with comprehensive data protection mechanisms
 - **Plugin System**: Modular design, extensible system functionality through plugins
+- **Enhanced UX**: Modern WebDesktop system based on React, providing a smoother desktop-class user experience
+- **Localization**: Full Chinese language support with localized UI and documentation
 
 OpenNAS is committed to providing home users with an intelligent, reliable, and convenient data management center.
 

@@ -3,5 +3,8 @@ webdesktop
 webui
 middleware
 
+# template
+tmp
+
 # repo
 .repo
