@@ -4,14 +4,19 @@
 
 ## 1. 确定目标子仓库
 
-根据对话上下文信息判断当前修改的代码仓库，或者根据各个子仓库的git状态进行判断。
-其中包括：
-./: 当前顶层仓库，主要负责子仓库的维护，以及AI上下文信息的维护
-./webui: 旧前端代码
-./middleware: 中间段代码
-./webdesktop：前端的代码，上下文的文档包含: webdesktop/.claude/commands/commit.md
+**必须先运行检查脚本**：
 
-需要提交哪个仓库就在哪个仓库目录下进行操作。
+```bash
+./scripts/check_status.sh
+```
+
+这会扫描所有仓库并报告哪些有变更。根据输出确定需要提交的仓库。
+
+其中包括：
+- `.`: 当前顶层仓库，主要负责子仓库的维护，以及AI上下文信息的维护
+- `./webdesktop`: 前端的代码，上下文的文档包含: webdesktop/.claude/commands/commit.md
+- `./webui`: 旧前端代码
+- `./middleware`: 中间段代码
 
 ## 2. 单仓库变更
 
@@ -35,6 +40,12 @@ cd <sub-repo>
 2. 再提交 webui 的变更
 3. 如果顶层也有变更，单独处理
 ```
+
+按照以下顺序提交（如果有多个）：
+1. webdesktop
+2. webui
+3. middleware
+4. top（顶层）
 
 ## 4. 顶层 Repo 变更
 
