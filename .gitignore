@@ -5,6 +5,11 @@ middleware
 
 # template
 tmp
+tools
+*.deb
+*.buildinfo
+*.changes
+
 
 # repo
 .repo
