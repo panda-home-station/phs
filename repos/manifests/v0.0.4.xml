@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <project path="webui" name="webui" revision="master" tag="TS-25.10.2.2" />
-  <project path="webdesktop" name="webdesktop" revision="truenas" />
-  <project path="middleware" name="middleware" revision="release/25.10.2.2" />
+  <project path="webui" name="webui" revision="stable/26" />
+  <project path="webdesktop" name="webdesktop" revision="v0.0.4" />
+  <project path="middleware" name="middleware" revision="phs/v0.0.3" />
 </manifest>
