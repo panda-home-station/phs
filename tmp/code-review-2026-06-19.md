@@ -79,7 +79,7 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 
 ## P2 修复进度
 
-> **当前进度:P2 已修 14/30,剩余 16 项。** 详细 commit 见下方表格。
+> **当前进度:P2 已修 17/30,剩余 13 项。** 详细 commit 见下方表格。
 
 | P2 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -97,8 +97,11 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 | #70 | middleware | ✅ done | `0e2886396f` | `chassis_hardware=None` 时 `.removeprefix()` AttributeError → None-guard + `TRUENAS-UNKNOWN` 默认;`raw_license` 不放 URL query,改 X-TNC-License header 占位 |
 | #71 | middleware | ✅ done | `0e2886396f` | `call_later(30, ...)` 硬编码 → `FINALIZE_DELAY_SECONDS=30` 模块常量 |
 | #72 | middleware | ✅ done | `0e2886396f` | `update_environment` 漏 audit → 补 `'TrueNAS Connect: Updating environment URLs'` |
+| #75 | truenas_connect_utils | ✅ done | `55a07db` | `EventCallback.CALLBACKS` 类级 mutable list → instance-level `self._callbacks`,多 instance 互不污染 |
+| #77 | truenas_connect_utils | ✅ done | `55a07db` | setup.cfg 无 `[tool:pytest]` 段 → 加 testpaths=tests / asyncio_mode=auto 等基本配置 |
+| #78 | truenas_connect_utils | ✅ done | `55a07db` | setup.py `license='GNU3'` 非 SPDX 合法标识(LICENSE 实际是 LGPL-3)→ 改 `'LGPL-3.0-or-later'` |
 
-P2 还剩 16 项。
+P2 还剩 13 项。
 
 ---
 
