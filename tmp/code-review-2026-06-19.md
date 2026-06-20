@@ -120,7 +120,7 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ## P3 修复进度
 
-> **当前进度:P3 已修 7/18,剩余 11 项。** 详细 commit 见下方表格。
+> **当前进度:P3 已修 10/18,剩余 8 项。** 详细 commit 见下方表格。
 
 | P3 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -131,8 +131,11 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 | #92 | fastconnect | ✅ done | `29857e8` | `from sqlalchemy.ext.declarative import declarative_base`(v1 deprecated)→ `from sqlalchemy.orm import declarative_base`(v2 推荐路径) |
 | #95 | middleware | ✅ done | `b43a0f751f` | middleware tunnel.py `import ssl` 死 import(无 `ssl.*` 使用)→ 删除 |
 | #101 | truenas_connect_utils | ✅ done | `2964c0a` | utils acme.py `import sys` 死 import(无 `sys.*` 使用)→ 删除 |
+| #96 | middleware | ✅ done | `71856950d0` | tunnel.py module-level `logger = logging.getLogger(...)` → `self.logger`(Service 继承),77 处 `logger.` → `self.logger.` |
+| #97 | middleware | ✅ done | `71856950d0` | state.py 中文注释(docstring + P1-31 fix 历史)全部翻译为英文,与项目其他文件注释风格统一 |
+| #98 | middleware | ✅ done | `71856950d0` | private_models.py 所有 Pydantic Field 加 `description=`,满足 `test_api_docstrings` 强制要求 |
 
-P3 还剩 11 项。
+P3 还剩 8 项。
 
 ---
 
