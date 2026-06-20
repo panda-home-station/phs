@@ -79,7 +79,7 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 
 ## P2 修复进度
 
-> **当前进度:P2 已修 22/30,剩余 8 项。** 详细 commit 见下方表格。
+> **当前进度:P2 已修 30/30,剩余 0 项 — 全段清账 ✅** 详细 commit 见下方表格。
 
 | P2 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -105,8 +105,16 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 | #62 | fastconnect | ✅ done | `84d131e` | proxy 转发 X-Forwarded-Host,浏览器 inject 可覆盖 Host 头诱导 host_resolver 走错 qc_id → `headers.pop('x-forwarded-host')` |
 | #63 | fastconnect | ✅ done | `84d131e` | `on_device_result` success 不动 session.state,browser 没 attach 就走人 → session 永远卡 COORDINATED 泄漏 → success 推进 state 到 CONNECTED,coordinator idle 清理 |
 | #64 | fastconnect | ✅ done | `84d131e` | `extract_qc_id_from_host` regex 不处理 host 前导/末尾 `.` → strip 后再 match,8 个变体 runtime 验证 |
+| #79 | webdesktop | ✅ done | `aae792e` | `ConnectError.candidatesTried` 命名误导 → 改 `candidatesConsidered`,保留 alias getter 向后兼容 |
+| #80 | webdesktop | ✅ done | `aae792e` | `IncomingMessage` 全部字段 optional 让 runtime 分支不可靠 → 拆 `IncomingRequest` / `IncomingResponse` discriminated union |
+| #81 | webdesktop | ✅ done | `aae792e` | `build: 'development'` 硬编码 → `import.meta.env.MODE`,production 构建显示 "production" |
+| #82 | webdesktop | ✅ done | `aae792e` | 7 处 `await import('./telemetry')` → 静态 import,init 一次性解析 |
+| #83 | webdesktop | ✅ done | `aae792e` | `mockFetchSequence` 3 个测试文件复制 → 抽 `_test-helpers.ts` shared helper |
+| #84 | webdesktop | ✅ done | `aae792e` | qc_id 正则 `[a-z2-7]` 含易混字符 0/1/8/9/l/o,服务端是剔除了这些的 → 改 `abcdefghijkmnpqrstuvwxyz234567` 与服务端一致 |
+| #85 | webdesktop | ✅ done | `aae792e` | STUN servers 硬编码 Google + Cloudflare → `getStunServers()` + VITE_STUN_SERVERS env / window override |
+| #86 | webdesktop | ✅ done | `aae792e` | `SubscriptionEntry.pendingCallId` 死字段 → 删除(实际订阅跟踪用 `pendingSubscriptions` Map) |
 
-P2 还剩 8 项。
+P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ---
 
