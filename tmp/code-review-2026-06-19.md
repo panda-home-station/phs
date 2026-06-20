@@ -89,8 +89,11 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 | #65 | middleware | ✅ done | `abaa97097f` | `TNCTunnelConnection.proxy_request(method, path, headers, body, client_ip)` 5-arg 死代码 → 删除(RPC 走 service `proxy_request(payload)`) |
 | #66 | middleware | ✅ done | `abaa97097f` | `_next_request_id` 标 `async def` 但只 `+=1` → 改 sync,caller 去掉 await |
 | #69 | middleware | ✅ done | `abaa97097f` | `urlparse(tunnel_url).scheme` 三元 else 透传 typo scheme → if/elif/else,else raise ValueError 含 'scheme' 提示 |
+| #58 | fastconnect | ✅ done | `804cf66` | `_fqdn_candidate` 信任用户输入 FQDN,不做 LAN/loopback 校验 → socket.getaddrinfo + ip.is_private 等检查,命中返 priority=9999 |
+| #59 | fastconnect | ✅ done | `804cf66` | `hostnames_ask` 无 rate limit → per-IP 30/min + global 100/sec sliding window,触发 429 + Retry-After: 60 |
+| #61 | fastconnect | ✅ done | `804cf66` | `proxy_request` body 无 max-size → `_MAX_PROXY_BODY_BYTES=64MB` + Content-Length 头预检 + 实际读到 body 二次校验,超限 413 |
 
-P2 还剩 24 项。
+P2 还剩 21 项。
 
 ---
 
