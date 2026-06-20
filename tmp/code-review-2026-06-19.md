@@ -79,7 +79,7 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 
 ## P2 修复进度
 
-> **当前进度:P2 已修 6/30,剩余 24 项。** 详细 commit 见下方表格。
+> **当前进度:P2 已修 14/30,剩余 16 项。** 详细 commit 见下方表格。
 
 | P2 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -92,8 +92,13 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 | #58 | fastconnect | ✅ done | `804cf66` | `_fqdn_candidate` 信任用户输入 FQDN,不做 LAN/loopback 校验 → socket.getaddrinfo + ip.is_private 等检查,命中返 priority=9999 |
 | #59 | fastconnect | ✅ done | `804cf66` | `hostnames_ask` 无 rate limit → per-IP 30/min + global 100/sec sliding window,触发 429 + Retry-After: 60 |
 | #61 | fastconnect | ✅ done | `804cf66` | `proxy_request` body 无 max-size → `_MAX_PROXY_BODY_BYTES=64MB` + Content-Length 头预检 + 实际读到 body 二次校验,超限 413 |
+| #67 | middleware | ✅ done | `0e2886396f` | `TNCAPIMixin._call` 是 1 行透传 → 删,3 service 改 `from truenas_connect_utils.request import call` |
+| #68 | middleware | ✅ done | `0e2886396f` | `calculate_sleep` group 无界 + docstring 误导向 → MAX_GROUP=15 cap + docstring 改写为 `(attempt_in_group + 1) * group_sleep` |
+| #70 | middleware | ✅ done | `0e2886396f` | `chassis_hardware=None` 时 `.removeprefix()` AttributeError → None-guard + `TRUENAS-UNKNOWN` 默认;`raw_license` 不放 URL query,改 X-TNC-License header 占位 |
+| #71 | middleware | ✅ done | `0e2886396f` | `call_later(30, ...)` 硬编码 → `FINALIZE_DELAY_SECONDS=30` 模块常量 |
+| #72 | middleware | ✅ done | `0e2886396f` | `update_environment` 漏 audit → 补 `'TrueNAS Connect: Updating environment URLs'` |
 
-P2 还剩 21 项。
+P2 还剩 16 项。
 
 ---
 
