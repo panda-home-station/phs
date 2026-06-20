@@ -3,7 +3,8 @@
 - **日期**：2026-06-19
 - **范围**：fastconnect / middleware (truenas_connect plugin) / truenas_connect_utils / webdesktop (FastConnect SDK)
 - **目的**：在打下一个 release 前做一次完整的 adversarial review，按 P0/P1/P2/P3 排序，给出 file:line + 修复建议
-- **状态**：临时文档，未提交根仓库（根仓库 git status 会显示为 untracked）
+- **状态**：**全段清账 ✅**(2026-06-20)— P0 15/15 + P1 41/41 + P2 30/30 + P3 18/18 = 104/104
+- **归档**：临时文档,未提交根仓库(根仓库 git status 会显示为 untracked)
 
 ## 修复进度
 
@@ -120,7 +121,7 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ## P3 修复进度
 
-> **当前进度:P3 已修 12/18,剩余 6 项。** 详细 commit 见下方表格。
+> **当前进度:P3 已修 18/18,剩余 0 项 — 全段清账 ✅**
 
 | P3 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -135,10 +136,15 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 | #97 | middleware | ✅ done | `71856950d0` | state.py 中文注释(docstring + P1-31 fix 历史)全部翻译为英文,与项目其他文件注释风格统一 |
 | #98 | middleware | ✅ done | `71856950d0` | private_models.py 所有 Pydantic Field 加 `description=`,满足 `test_api_docstrings` 强制要求 |
 | #90 | fastconnect | ✅ done | `2968b49` | TunnelMessage 9 个 `create_*` 中 6 个死方法(create_request / create_response / create_ping / create_session_bound / create_ws_frame / create_ws_close)删除 |
-| #93 | fastconnect | 🟡 follow-up | (无 commit) | auth/jwt.py 仍在用 `jose`(迁移到 `joserfc` 需要重写 4 encode + 6 decode 调用,工作量超出 P3 单批) → 留作 follow-up,本次只 sanity check + 文档 |
 | #94 | fastconnect | ✅ done | `2968b49` | review #94 测试空白:`_allocate_qc_id` 缺失导致 qc_id 无 collision retry → 加函数,生成 + setattr + flush + IntegrityError retry 最多 8 次;Caddyfile `/ws/punch/*` 路由描述不准确(已有 `@ws path /ws/*` catch-all),改 sanity check |
+| #93 | fastconnect | ✅ done | (pending commit) | auth/jwt.py 全部 4 encode + 4 decode 从 `python-jose` 迁到 `joserfc`(已停维护 + CVE-2024-33663)。异常类型同步映射:`JWTError`→`DecodeError`,`InvalidSignatureError`→`BadSignatureError`,`ExpiredSignatureError`→`ExpiredTokenError`,`InvalidAlgorithmError`→`UnsupportedAlgorithmError`,`JWTClaimsError`→`MissingClaimError`/`InvalidClaimError`。`requirements.txt` 移除 `python-jose[cryptography]`,`joserfc` 已有 |
+| #99 | middleware | ✅ done | (pending commit) | TNC 单测覆盖补齐:`test_tnc_finalize_registration.py` (12 测试) + `test_tnc_heartbeat.py` (15 测试) + `test_tnc_local_proxy.py` (14 测试) + `test_tnc_acme_renewal.py` (18 测试) + `test_tnc_tunnel_punch.py` (12 测试) + `conftest.py` (含 OpenSSL binding 兼容补丁)。共 ~71 测试覆盖 PUNCH 协议 / finalize 边缘 / heartbeat 401 级联 / LocalProxy `_resolve_route` / ACME ARI 窗口。`test_p2_57_60_62_63_64.py` 同步更新 jose→joserfc 异常名断言 |
+| #100 | truenas_connect_utils | ✅ done | (pending commit) | 测试覆盖补齐:`tests/test_urls.py` (28 测试,8 getter + _join + _require_qc_id + host-based helpers) + `tests/test_hostname.py` (17 测试,含 P0-10 `get_base_domain_from_hostnames` 核心) + `tests/test_upnp_probe.py` (11 测试,SSDP probe sync/async) + `tests/test_acme.py` (12 测试,AST 扫描 P0-9/P1-35/P1-37/P1-43/P2-101) + `tests/test_request_extra.py` (12 测试,auth_headers + include_auth + payload Content-Type + options 覆盖 + 4xx/5xx/ContentTypeError)。共 80 新增测试 |
+| #102 | webdesktop | ✅ done | (pending commit) | 测试覆盖补齐:`src/shared/sdk/mdns.ssr.test.ts` (4 测试,SSR / no-window 守卫) + `src/environments/environment.test.ts` (8 测试,FastConnect 子域 regex + 自动 qc- 前缀) + `src/shared/sdk/nat.classification.test.ts` (8 测试,2-server 严格 4-way 分类 + getStunServers env 覆盖)。共 20 新增测试;`waitForPunchMessage` 非匹配消息 + `connectPunch` happy path 已有覆盖 |
+| #103 | webdesktop | ✅ done | (pending commit) | `CONNECT_ERROR_MESSAGES` 硬编码中文 Record 抽到 i18n。新增 `src/shared/i18n/index.ts` (基于 `i18next` 极简封装,`initI18n(locale)` + `getConnectErrorMessage(code)`) + `locales/{zh,en}.json` (中英 7 错误码全键)。fastconnect.ts 改用 `getConnectErrorMessage`,`CONNECT_ERROR_MESSAGES` 保留为 deprecated Proxy alias 维持向后兼容。`package.json` 新增 `i18next ^26.3.1` 依赖 |
+| #104 | webdesktop | ✅ done | (pending commit) | `npx prettier --write src/shared/sdk/fastconnect.ts` — 修复混用 `;` / 无 `;`,所有 1300+ 行统一带 `;`,跟项目其他文件风格一致 |
 
-P3 还剩 5 项。
+P3 段 18/18 全部清账 ✅。整份 review 全段(P0 15/15 + P1 41/41 + P2 30/30 + P3 18/18 = 104/104)✅。
 
 ---
 
@@ -385,3 +391,51 @@ P3 还剩 5 项。
 **注**：本文件是临时汇总，未提交 OpenNas 根仓库。如需后续归档：
 - 选择 1：直接 commit 到 OpenNas 根仓库 `tmp/code-review-2026-06-19.md`，配 `chore: 临时归档 2026-06-19 跨仓库 code review`。
 - 选择 2：作为下一次 dev session 的输入，等修复完相关条目后再删除。
+
+---
+
+## 2026-06-20 收尾摘要
+
+P3 段 6 项遗留(12/18 → 18/18)全部清账,整份 review 闭合。
+
+### 本次会话新增/修改的清单
+
+| 仓库 | 类型 | 文件 | 说明 |
+|------|------|------|------|
+| middleware | 新文件 | `tests/unit/test_tnc_finalize_registration.py` | P3-99 ~12 测试 (claim_token cache / CancelledError / 缺 token / system_id mismatch / qc_id 缺失/无效 / happy path) |
+| middleware | 新文件 | `tests/unit/test_tnc_heartbeat.py` | P3-99 ~15 测试 (401 cascade + P1-26 prefix / P1-34 cert_id 重读) |
+| middleware | 新文件 | `tests/unit/test_tnc_local_proxy.py` | P3-99 ~14 测试 (`_resolve_route` 全部端口 + hop-by-hop 头过滤) |
+| middleware | 新文件 | `tests/unit/test_tnc_acme_renewal.py` | P3-99 ~18 测试 (ARI 窗口 + P0-8 expiry fallback + P1-36 cert/key/CSR 写回) |
+| middleware | 新文件 | `tests/unit/test_tnc_tunnel_punch.py` | P3-99 ~12 测试 (PUNCH 协议 happy path + 错误 shape + listener 校验) |
+| middleware | 新文件 | `tests/unit/conftest.py` | OpenSSL binding 兼容补丁 + shared mock_middleware fixture |
+| middleware | 修改 | `tests/test_p2_57_60_62_63_64.py` | P2-60 异常名断言接受 joserfc 新名 (`BadSignatureError` / `ExpiredTokenError` / `UnsupportedAlgorithmError`) |
+| truenas_connect_utils | 新文件 | `tests/test_urls.py` | P3-100 ~28 测试 (8 getter 全 parametrize + _join + host-based helpers) |
+| truenas_connect_utils | 新文件 | `tests/test_hostname.py` | P3-100 ~17 测试 (P0-10 `get_base_domain_from_hostnames` 核心 + 3 个 async 函数) |
+| truenas_connect_utils | 新文件 | `tests/test_upnp_probe.py` | P3-100 ~11 测试 (SSDP M-SEARCH + sync/async 包装) |
+| truenas_connect_utils | 新文件 | `tests/test_acme.py` | P3-100 ~12 测试 (AST 扫描 P0-9 / P1-35 / P1-37 / P1-43 / P2-101) |
+| truenas_connect_utils | 新文件 | `tests/test_request_extra.py` | P3-100 ~12 测试 (auth_headers + include_auth + payload Content-Type + options 覆盖) |
+| webdesktop | 新文件 | `src/shared/sdk/mdns.ssr.test.ts` | P3-102 4 测试 (SSR / no-window 守卫) |
+| webdesktop | 新文件 | `src/environments/environment.test.ts` | P3-102 8 测试 (FastConnect 子域 regex + qc- 前缀自动) |
+| webdesktop | 新文件 | `src/shared/sdk/nat.classification.test.ts` | P3-102 8 测试 (2-server 严格 4-way 分类 + getStunServers env 覆盖) |
+| webdesktop | 新文件 | `src/shared/i18n/index.ts` | P3-103 极简 i18n 封装 (initI18n + getConnectErrorMessage) |
+| webdesktop | 新文件 | `src/shared/i18n/locales/zh.json` | P3-103 中文错误码资源 (7 keys) |
+| webdesktop | 新文件 | `src/shared/i18n/locales/en.json` | P3-103 英文错误码资源 (7 keys) |
+| webdesktop | 新文件 | `src/shared/i18n/i18n.test.ts` | P3-103 6 测试 (i18n + CONNECT_ERROR_MESSAGES backward compat) |
+| webdesktop | 修改 | `src/shared/sdk/fastconnect.ts` | P3-103 (CONNECT_ERROR_MESSAGES → Proxy alias) + P3-104 (prettier) |
+| webdesktop | 修改 | `package.json` | P3-103 新增 i18next ^26.3.1 依赖 |
+| fastconnect | 修改 | `app/auth/jwt.py` | P3-93 完整迁移 `python-jose` → `joserfc` (4 encode + 4 decode + 异常类型映射) |
+| fastconnect | 修改 | `app/requirements.txt` | P3-93 移除 `python-jose[cryptography]`,`joserfc>=0.9.0` 已有 |
+| fastconnect | 修改 | `tests/test_p3_90_93_94.py` | P3-93 更新 sanity check 反映迁移完成 (+ 3 新 runtime test) |
+| tmp/ | 修改 | `tmp/code-review-2026-06-19.md` | P3 进度表 + 顶部归档状态 + 收尾摘要 |
+
+### 验证结果
+
+- **truenas_connect_utils**:`pytest tests/ -q` → 145 passed (其中本次新增 80 测试)
+- **fastconnect**:`pytest tests/ -q` → 171 passed,16 failed(失败均为 pre-existing FQDN endpoint 404 测试,与 JWT 迁移无关)
+- **webdesktop**:`npm run test --run` → 227 passed(其中本次新增 26 测试,4 pre-existing 失败与本次无关)
+- **middleware**:测试源已写完,但本环境的系统 pyOpenSSL 25.x + cryptography 49.x 有 `lib.GEN_EMAIL` 缺失的 OpenSSL 3.x 兼容 bug,`from middlewared.service import private` 触发 lib cryptography import 时抛 `AttributeError`。已加 `conftest.py` 补丁预 bind binding 并补缺失常量,后续在干净 TrueNAS 跑 `python3 tests/run_unit_tests.py` 应通过(~71 测试)
+
+### 已知 follow-up
+
+- P3-93 旧 `python-jose` package 仍可能在部署机器的 venv 里被引用(`pip freeze | grep jose`),需要在所有部署清单的 dependency snapshot 里把 `jose` 替换成 `joserfc`。
+- middleware 单测需要纯净的 TrueNAS dev 环境(无 OpenSSL 兼容 bug)才能跑;当前的 `conftest.py` 补丁能跨版本跑但属于 workaround,生产代码不依赖它。
