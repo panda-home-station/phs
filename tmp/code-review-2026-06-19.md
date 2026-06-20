@@ -118,6 +118,20 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ---
 
+## P3 修复进度
+
+> **当前进度:P3 已修 3/18,剩余 15 项。** 详细 commit 见下方表格。
+
+| P3 # | 仓库 | 状态 | Commit | 摘要 |
+|---|---|---|---|---|
+| #87 | fastconnect | ✅ done | `a2f1d78` | `make_tnc_response` 5 份 copy-paste(3 种 shape)合并到 `app/core/response.py`,统一 4 字段 shape |
+| #88 | fastconnect | ✅ done | `a2f1d78` | `get_account_from_token` 在 hostname.py + acme.py 各一份(语义不一致) → 合并到 `app/core/auth_helpers.py`,两条 token 路径都 fallback |
+| #89 | fastconnect | ✅ done | `a2f1d78` | `_client_ip` 在 rate_limit + analytics 各一份 → 合并到 `app/core/client_ip.py`,IPv6 45 截断统一 |
+
+P3 还剩 15 项。
+
+---
+
 ## 跨仓库关键交叉问题（同一个根因，影响多端）
 
 | # | 现象 | 三端耦合点 |
