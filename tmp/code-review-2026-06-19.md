@@ -439,3 +439,29 @@ P3 段 6 项遗留(12/18 → 18/18)全部清账,整份 review 闭合。
 
 - P3-93 旧 `python-jose` package 仍可能在部署机器的 venv 里被引用(`pip freeze | grep jose`),需要在所有部署清单的 dependency snapshot 里把 `jose` 替换成 `joserfc`。
 - middleware 单测需要纯净的 TrueNAS dev 环境(无 OpenSSL 兼容 bug)才能跑;当前的 `conftest.py` 补丁能跨版本跑但属于 workaround,生产代码不依赖它。
+
+### 2026-06-20 追加:dev box 环境层修复
+
+跑 `make reinstall` 在 dev box (`truenas_admin` 用户) 上撞 3 个独立问题,跟 P3 修复主线无关:
+
+| # | 问题 | 修复方式 | 提交/位置 |
+|---|------|----------|-----------|
+| E1 | `dpkg-checkbuilddeps: error: unmet build dependencies: python3-truenas-acme-utils`(包名错,实际由 `python3-truenas-crypto-utils` 捎带) | `debian/control` 移除该 nonexistent dep name | `truenas_connect_utils` repo, commit `7756f2d` |
+| E2 | `OpenSSL/cryptography 49.x` ABI 不兼容,`module 'lib' has no attribute 'GEN_EMAIL'`,撞 4 个 import 链 (`OpenSSL.crypto` / `urllib3.contrib.pyopenssl` / `truenas_acme_utils.issue_cert` / `middlewared.api.base.types`) | `~/.local/lib/python3.13/site-packages/usercustomize.py` 预 bind cryptography binding + 补 NID 占位 | dev box 环境文件,无 commit |
+| E3 | `middlewared.plugins.truenas_connect.private_models:1` 写 `from middlewared.api.base import Field`,但 `Field` 没在 `middlewared.api.base.types/__init__.py` 的 `__all__` 里 re-export → `alembic upgrade` 撞 `ImportError: cannot import name 'Field'` | `from pydantic import Field` 直接 import | `middleware` repo, commit `c20caf85` |
+
+**E1 / E3 是真代码 bug,提交了**(可 review、可 cherry-pick)。
+**E2 是 dev box 系统层兼容 bug**,装在 `~/.local/`(用户级 site-packages),不污染生产 TrueNAS 环境:
+- 生产 TrueNAS build env 用的是 lockstep 的 pyOpenSSL + cryptography,撞不到这个 bug
+- 哪天 dev box 升级到兼容版本,直接 `rm ~/.local/lib/python3.13/site-packages/usercustomize.py` 即可
+
+#### `make reinstall` 仍跑不通 dev box 的原因
+
+`/usr/lib/python3/dist-packages/truenas_connect_utils/`、`/usr/lib/python3/dist-packages/truenas_crypto_utils/`、`/usr/lib/python3/dist-packages/middlewared/debian/.debhelper/` 等目录是**之前以 root 跑 build 留下的 root-owned artifacts**。`truenas_admin` 删不动 → `make reinstall` 走不到 dpkg-buildpackage 阶段就 Permission denied。
+
+`make reinstall` 是生产 build 路径,在 dev box 跑 `make reinstall` 不属于日常 dev loop;真正 release 流程在 TrueNAS build pipeline 上跑,那环境以 root 跑且 OpenSSL lockstep 兼容,无此问题。
+
+**dev box 上推荐流程**:
+- 改代码 + 跑 `pytest tests/` + commit(已验证 183 tests pass)
+- 不跑 `make reinstall`(需要 root + 干净 build env)
+- 跑 middleware 单测时用 `python3 -m pytest tests/unit/test_tnc_*.py -q --confcutdir=.` 跑单个文件,自动绕开 root-owned build artifacts
