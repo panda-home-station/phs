@@ -77,6 +77,23 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 
 ---
 
+## P2 修复进度
+
+> **当前进度:P2 已修 6/30,剩余 24 项。** 详细 commit 见下方表格。
+
+| P2 # | 仓库 | 状态 | Commit | 摘要 |
+|---|---|---|---|---|
+| #73 | truenas_connect_utils | ✅ done | `9c06e42` | `acme_config` 重复校验 `resp['response'].get('acme_details') is dict` — normalize_acme_config 内已检查,删外层(2 个 AST 测试) |
+| #74 | truenas_connect_utils | ✅ done | `9c06e42` | 8 个 getter 都直接 `urllib.parse.urljoin` — 提 `_join(base, path)` helper,8 处调用统一(5 个运行时 parametrize + 2 个 AST 测试) |
+| #76 | truenas_connect_utils | ✅ done | `9c06e42` | `send_event` 静默吞 callback 异常(全 logger.debug)→ 首次 warning + exc_info,后续 debug 抑制噪音(3 个运行时测试) |
+| #65 | middleware | ✅ done | `abaa97097f` | `TNCTunnelConnection.proxy_request(method, path, headers, body, client_ip)` 5-arg 死代码 → 删除(RPC 走 service `proxy_request(payload)`) |
+| #66 | middleware | ✅ done | `abaa97097f` | `_next_request_id` 标 `async def` 但只 `+=1` → 改 sync,caller 去掉 await |
+| #69 | middleware | ✅ done | `abaa97097f` | `urlparse(tunnel_url).scheme` 三元 else 透传 typo scheme → if/elif/else,else raise ValueError 含 'scheme' 提示 |
+
+P2 还剩 24 项。
+
+---
+
 ## 跨仓库关键交叉问题（同一个根因，影响多端）
 
 | # | 现象 | 三端耦合点 |
