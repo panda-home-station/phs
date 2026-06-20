@@ -3,9 +3,12 @@ webdesktop
 webui
 middleware
 fastconnect
+devdocs
 
 # template
-tmp
+tmp/*
+!tmp/.gitkeep
+!tmp/code-review-*.md
 tools
 *.deb
 *.buildinfo
