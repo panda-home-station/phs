@@ -120,7 +120,7 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ## P3 修复进度
 
-> **当前进度:P3 已修 10/18,剩余 8 项。** 详细 commit 见下方表格。
+> **当前进度:P3 已修 12/18,剩余 6 项。** 详细 commit 见下方表格。
 
 | P3 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -134,8 +134,11 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 | #96 | middleware | ✅ done | `71856950d0` | tunnel.py module-level `logger = logging.getLogger(...)` → `self.logger`(Service 继承),77 处 `logger.` → `self.logger.` |
 | #97 | middleware | ✅ done | `71856950d0` | state.py 中文注释(docstring + P1-31 fix 历史)全部翻译为英文,与项目其他文件注释风格统一 |
 | #98 | middleware | ✅ done | `71856950d0` | private_models.py 所有 Pydantic Field 加 `description=`,满足 `test_api_docstrings` 强制要求 |
+| #90 | fastconnect | ✅ done | `2968b49` | TunnelMessage 9 个 `create_*` 中 6 个死方法(create_request / create_response / create_ping / create_session_bound / create_ws_frame / create_ws_close)删除 |
+| #93 | fastconnect | 🟡 follow-up | (无 commit) | auth/jwt.py 仍在用 `jose`(迁移到 `joserfc` 需要重写 4 encode + 6 decode 调用,工作量超出 P3 单批) → 留作 follow-up,本次只 sanity check + 文档 |
+| #94 | fastconnect | ✅ done | `2968b49` | review #94 测试空白:`_allocate_qc_id` 缺失导致 qc_id 无 collision retry → 加函数,生成 + setattr + flush + IntegrityError retry 最多 8 次;Caddyfile `/ws/punch/*` 路由描述不准确(已有 `@ws path /ws/*` catch-all),改 sanity check |
 
-P3 还剩 8 项。
+P3 还剩 5 项。
 
 ---
 
