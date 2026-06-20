@@ -120,15 +120,19 @@ P2 还剩 0 项。**P2 段 30/30 全部清账 ✅**
 
 ## P3 修复进度
 
-> **当前进度:P3 已修 3/18,剩余 15 项。** 详细 commit 见下方表格。
+> **当前进度:P3 已修 7/18,剩余 11 项。** 详细 commit 见下方表格。
 
 | P3 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
 | #87 | fastconnect | ✅ done | `a2f1d78` | `make_tnc_response` 5 份 copy-paste(3 种 shape)合并到 `app/core/response.py`,统一 4 字段 shape |
 | #88 | fastconnect | ✅ done | `a2f1d78` | `get_account_from_token` 在 hostname.py + acme.py 各一份(语义不一致) → 合并到 `app/core/auth_helpers.py`,两条 token 路径都 fallback |
 | #89 | fastconnect | ✅ done | `a2f1d78` | `_client_ip` 在 rate_limit + analytics 各一份 → 合并到 `app/core/client_ip.py`,IPv6 45 截断统一 |
+| #91 | fastconnect | ✅ done | `29857e8` | `PunchState.PUNCH_SENT` 死 enum 值 → 删除(INITIATED → COORDINATED 直接跳,从未被 set/get) |
+| #92 | fastconnect | ✅ done | `29857e8` | `from sqlalchemy.ext.declarative import declarative_base`(v1 deprecated)→ `from sqlalchemy.orm import declarative_base`(v2 推荐路径) |
+| #95 | middleware | ✅ done | `b43a0f751f` | middleware tunnel.py `import ssl` 死 import(无 `ssl.*` 使用)→ 删除 |
+| #101 | truenas_connect_utils | ✅ done | `2964c0a` | utils acme.py `import sys` 死 import(无 `sys.*` 使用)→ 删除 |
 
-P3 还剩 15 项。
+P3 还剩 11 项。
 
 ---
 
