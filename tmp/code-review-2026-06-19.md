@@ -79,7 +79,7 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 
 ## P2 修复进度
 
-> **当前进度:P2 已修 17/30,剩余 13 项。** 详细 commit 见下方表格。
+> **当前进度:P2 已修 22/30,剩余 8 项。** 详细 commit 见下方表格。
 
 | P2 # | 仓库 | 状态 | Commit | 摘要 |
 |---|---|---|---|---|
@@ -100,8 +100,13 @@ P1 还剩 0 项。**P1 段 41/41 全部清账 ✅**
 | #75 | truenas_connect_utils | ✅ done | `55a07db` | `EventCallback.CALLBACKS` 类级 mutable list → instance-level `self._callbacks`,多 instance 互不污染 |
 | #77 | truenas_connect_utils | ✅ done | `55a07db` | setup.cfg 无 `[tool:pytest]` 段 → 加 testpaths=tests / asyncio_mode=auto 等基本配置 |
 | #78 | truenas_connect_utils | ✅ done | `55a07db` | setup.py `license='GNU3'` 非 SPDX 合法标识(LICENSE 实际是 LGPL-3)→ 改 `'LGPL-3.0-or-later'` |
+| #57 | fastconnect | ✅ done | `84d131e` | share-link `/auth` 返 stateless `authenticated: True`,客户端需 query 反复提交密码 → 改签短期 `share_ticket`(15min TTL,purpose=share_ticket 防复用) |
+| #60 | fastconnect | ✅ done | `84d131e` | jwt.decode 笼统 catch `JWTError`,运维改 `tunnel_jwt_algorithm` 错配看不出根因 → 分类型 catch(InvalidAlgorithmError/InvalidSignatureError/ExpiredSignatureError/JWTClaimsError),各 logger level |
+| #62 | fastconnect | ✅ done | `84d131e` | proxy 转发 X-Forwarded-Host,浏览器 inject 可覆盖 Host 头诱导 host_resolver 走错 qc_id → `headers.pop('x-forwarded-host')` |
+| #63 | fastconnect | ✅ done | `84d131e` | `on_device_result` success 不动 session.state,browser 没 attach 就走人 → session 永远卡 COORDINATED 泄漏 → success 推进 state 到 CONNECTED,coordinator idle 清理 |
+| #64 | fastconnect | ✅ done | `84d131e` | `extract_qc_id_from_host` regex 不处理 host 前导/末尾 `.` → strip 后再 match,8 个变体 runtime 验证 |
 
-P2 还剩 13 项。
+P2 还剩 8 项。
 
 ---
 
