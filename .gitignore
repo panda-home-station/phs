@@ -8,8 +8,6 @@ devdocs
 
 # template
 tmp/*
-!tmp/.gitkeep
-!tmp/code-review-*.md
 tools
 *.deb
 *.buildinfo
