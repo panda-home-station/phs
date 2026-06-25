@@ -2,7 +2,7 @@
 <manifest>
   <remote name="gitlab" fetch="http://gitlab.pandamicro.com/panda-home-station/" />
 
-  <project path="webui" name="webui" revision="dev" />
+  <project path="webui" name="webui" revision="stable/26" />
   <project path="webdesktop" name="webdesktop" revision="dev" />
   <project path="middleware" name="middleware" revision="dev" />
   <project path="truenas_connect_utils" name="truenas_connect_utils" revision="dev" />
