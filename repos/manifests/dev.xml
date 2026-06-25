@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="gitlab" fetch="http://gitlab.pandamicro.com/panda-home-station/" />
+
+  <project path="webui" name="webui" revision="dev" />
+  <project path="webdesktop" name="webdesktop" revision="dev" />
+  <project path="middleware" name="middleware" revision="dev" />
+  <project path="truenas_connect_utils" name="truenas_connect_utils" revision="dev" />
+</manifest>

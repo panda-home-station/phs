@@ -3,6 +3,6 @@
 
   <default remote="origin" revision="main" sync-j="4" />
 
-  <include name="manifests/v0.0.4.xml" />
+  <include name="repos/manifests/dev.xml" />
 
 </manifest>
