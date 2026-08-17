@@ -7,7 +7,7 @@
 **必须先运行检查脚本**：
 
 ```bash
-./scripts/check_status.sh
+tools/check-git-status.sh
 ```
 
 这会扫描所有仓库并报告哪些有变更。根据输出确定需要提交的仓库。
