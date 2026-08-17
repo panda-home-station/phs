@@ -20,15 +20,17 @@ REMOTE=root@1.2.3.4 BASE_DOMAIN=staging.example.com bash tools/deploy-fastconnec
 如需手动验证:
 
 ```bash
-ssh root@45.116.79.148 "docker exec fastconnect_api python -c 'import urllib.request; print(urllib.request.urlopen(\"http://localhost:8000/health\").read().decode())'"
+ssh fastconnect "docker exec fastconnect_api python -c 'import urllib.request; print(urllib.request.urlopen(\"http://localhost:8000/health\").read().decode())'"
 ```
+
+> SSH alias `fastconnect` → HostName `fastconnect.host` (随 DNS 自动漂移,2026-08-15 切换)
 
 ## 3. 检查日志
 
 如有需要,查看 API 日志:
 
 ```bash
-ssh root@45.116.79.148 "docker logs fastconnect_api 2>&1 | tail -20"
+ssh fastconnect "docker logs fastconnect_api 2>&1 | tail -20"
 ```
 
 ## smoke test 覆盖范围(脚本里自动跑)

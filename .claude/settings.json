@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash /home/truenas_admin/work/OpenNAS/tools/check-deploy-sync.sh --soft 2>&1 || true",
+        "timeout": 30
+      }
+    ]
+  }
+}
