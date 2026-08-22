@@ -4,7 +4,7 @@ webui
 middleware
 fastconnect
 truenas_connect_utils
-devdocs
+pandacode
 
 # template
 tmp/*

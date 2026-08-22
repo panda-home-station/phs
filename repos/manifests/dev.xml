@@ -6,4 +6,5 @@
   <project path="webdesktop" name="webdesktop" revision="dev" />
   <project path="middleware" name="middleware" revision="dev" />
   <project path="truenas_connect_utils" name="truenas_connect_utils" revision="dev" />
+  <project path="pandacode" name="pandacode" revision="dev" />
 </manifest>
