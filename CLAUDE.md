@@ -2,6 +2,20 @@
 
 **Panda Home Station** 是一个全新的系统，将网络附加存储（NAS）系统和高性能游戏主机合二为一。该系统的目标是实现一个全新的**家庭数据中心**，能够同时满足数据存储、游戏主机的需求。同时提供 Web 桌面环境与桌面游戏环境。
 
+## 开发规范 (Dev Spec)
+
+所有 dev 在写代码、review、deploy 前**必须**遵守 [`opennas-dev-spec`](.claude/skills/opennas-dev-spec/) skill 里的 10 大规则。
+
+常用快捷方式:
+
+| 命令 | 作用 |
+|------|------|
+| `/opennas-lint` | 跑全套 lint (alembic + 更多) |
+| `bash .claude/skills/opennas-dev-spec/scripts/lint-alembic-revisions.sh` | 单跑 alembic revision id 检测 |
+| Read `.claude/skills/opennas-dev-spec/rules.md` | 看完整规则 |
+
+新成员入门:从 `rules.md` 读起 → 跑 `/opennas-lint` 验证现有代码 → 写新代码前再读相关章节。
+
 ## Repositories
 PHS 是一个由andoird的repo工具管理的多代码仓库，根目录仓库用来作为repo的管理以及项目入口。其中包含子仓库(独立git管理)：
 
