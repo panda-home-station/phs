@@ -640,6 +640,7 @@ done
 ## §18 Commit checklist: 无 indexed annotations
 
 **Rule**: 提交前 code review 必须包含"无 indexed annotations"项。
+**commit message 本身也算**,不只是代码 / 注释。
 
 ### 详查
 
@@ -648,10 +649,13 @@ done
 - **日期** (2026-08-15 migrated, "after 14-reviews")
 - 临时变量 (TODO-A, FIXME-X)
 - 内部短语 (§3.4.5, "L347 cache fix")
+- **规则标号 (R1~R9 / §1~§18)** — 读 commit 的人没法快速跳到那节。doc
+  内部用编号没事(那节 anchor 就在 doc 顶上),commit message 引用就是
+  索引断链。
 
 ### 为什么
 
-读者几月后看 git blame `grep "P3-104"` 找不到对应 wiki / 文档 —— 这些字符串**永久存在**但**没有上下文锚点**。
+读者几月后看 git blame `grep "P3-104"` 找不到对应 wiki / 文档 —— 这些字符串**永久存在**但**没有上下文锚点**。commit message 同理:`git log --grep "R1"` 找不到对应 doc,几个月后回看也只剩裸字符串。
 
 ### 模板
 
@@ -669,6 +673,14 @@ durable user-intent flag. The reconciler reads this column across
 reboots, HA failover, and watchdog cycles, so it can correctly
 distinguish "user explicitly stopped the tunnel" from "tunnel task
 died and needs a restart".
+```
+
+```bash
+# ❌ 错: commit message 引用 R1-R9 规则标号
+git commit -m "docs(system-app): R1-R9 约定 + 何时抽共享原件决策表"
+
+# ✅ 对: 用规则的描述名,读者看得懂
+git commit -m "docs(system-app): 共享组件约定(rule-of-two + tokens + memo)"
 ```
 
 ### 例外
