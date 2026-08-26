@@ -1,11 +1,20 @@
-# Pipa 测试 Runbook (Sprint 1-5 验收)
+# Pipa 测试 Runbook (验收)
 
-按 sprint 顺序跑。每个 sprint 都有「快速命令」+ 「成功标志」+ 「失败排查」三段。
+按步骤顺序跑。每段都有「快速命令」+ 「成功标志」+ 「失败排查」三段。
 **任何一步失败都先停下,别继续后面的步骤**——后面的依赖前面的产物。
+
+> **重要前提**:Pipa 是 per-user daemon,**不存在** `/run/pipa/pipa.sock`
+> 或 `systemctl status pipa` 这种系统级概念。daemon 跑在每个 TrueNAS 用户自己的
+> `systemd --user` instance 下,socket 在 `/run/user/<uid>/pipa.sock`。
+>
+> 本 runbook 假设:
+> - 至少两个 TrueNAS 用户已存在(例如 `apple` / `banana`),各自能登录 webdesktop
+> - middleware + pandacode + webdesktop 三个 deb 都已通过 `tools/deploy-nas.sh --target <name>` 装好
+> - 至少一个 provider 的 API key 已配(否则流式测试到"Sprint 3"阶段会卡)
 
 ---
 
-## 0. 预检 (任何 sprint 开始前)
+## 0. 预检 (任何步骤开始前)
 
 ```bash
 cd /home/truenas_admin/work/OpenNAS
@@ -19,6 +28,14 @@ which cargo rustc node npm python3 dpkg-buildpackage midclt systemctl curl
 # TrueNAS 是否就绪
 midclt call system.ready
 # 期望: True
+
+# 关键:系统级 pipa unit 不应存在(per-user daemon 时代)
+systemctl status pipa.service 2>&1 | head -1
+# 期望: Unit pipa.service could not be found.
+
+# 关键:deb 已装
+dpkg -l panda-app-server | tail -1
+# 期望: ii  panda-app-server  0.1.0-...
 ```
 
 **已知缺口**:`cargo` / `rustc` 默认没装。两种处理:
@@ -27,83 +44,91 @@ midclt call system.ready
 
 ---
 
-## 1. Sprint 1:pandacode deb + systemd
+## 1. 基础设施:per-user daemon 拉起链路
 
-**目标**:`panda-app-server` 跑起来,socket 在 `/run/pipa/pipa.sock`。
-
-```bash
-# 1.1 装 rustup(若用方案 B)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-source $HOME/.cargo/env
-
-# 1.2 编译 + 装 deb
-cd /home/truenas_admin/work/OpenNAS/pandacode
-make reinstall
-
-# 1.3 验证 deb 内容(可选)
-dpkg -L panda-app-server | head -10
-# 期望: /usr/sbin/panda-app-server 是 binary,不是空文件
-
-# 1.4 middleware 的 pipa.service 应已通过 middleware/debian 的 postinst 拉起
-systemctl status pipa
-# 期望: active (running)
-
-ls -l /run/pipa/pipa.sock
-# 期望: srw-r----- 1 root root ...  (socket 文件存在)
-
-# 1.5 重启 systemd 不应影响 middleware 主功能
-systemctl restart pipa
-systemctl status middlewared | head -3
-# 期望: middlewared 仍 active (running)
-```
-
-**失败排查**:
-
-| 症状 | 排查 |
-|------|------|
-| `cargo: command not found` | §0 选 A (dev 机器 build) |
-| `dpkg-buildpackage: unmet build dependencies: cargo` | 同上 |
-| `systemctl status pipa` 显示 `inactive (dead)` | `journalctl -u pipa -n 30 --no-pager` 看 startup error |
-| `/run/pipa/pipa.sock` 不存在 | 检查 `tmpfiles.d/pipa.conf` 是否安装 + `RuntimeDirectory=pipa` 是否生效 |
-| `/usr/sbin/panda-app-server: not found` | deb 没装,看 `dpkg -l | grep panda-app-server` |
-
----
-
-## 2. Sprint 2:middleware pipa plugin 骨架
-
-**目标**:`/_plugins/pipa/ws` 路由可用,sync RPC (`pipa.status` / `pipa.user_prefs.query`) 返回正常。
+**目标**:首次 Cmd+K 触发 middleware supervisor 拉起 apple 用户的 daemon,socket 出现在
+`/run/user/<apple-uid>/pipa.sock`,daemon accept-ready。
 
 ```bash
-# 2.1 重装 middleware
-cd /home/truenas_admin/work/OpenNAS/middleware/src/middlewared
-make reinstall_container    # 容器模式,或 `make reinstall` 包模式
+# 1.1 linger 已开(否则用户登出后 daemon 跟着死)
+sudo loginctl enable-linger apple banana
+loginctl show-user apple Linger=
+loginctl show-user banana Linger=
+# 期望: 都输出 Linger=yes
 
-# 2.2 等 5s 启动,验证
-sleep 5
+# 1.2 用 apple 登录 webdesktop(浏览器),按一次 Cmd+K(或 Taskbar 机器人按钮)
+#     → middleware 内部跑 PipaSupervisorService.ensure_running_for_caller:
+#        loginctl enable-linger / sudo -u apple tee unit / mkdir -p ~/.panda /
+#        machinectl shell start / 探 socket
+
+# 1.3 验证 apple 的 daemon 跑起来了
+ps -eo pid,rss,user,args --no-headers | grep '[p]anda-app-server.*--listen unix:///run/user/'
+# 期望: 一行,user=apple,args 里含 --listen unix:///run/user/<apple-uid>/pipa.sock
+
+ls -la /run/user/<apple-uid>/pipa.sock
+# 期望: srw------- 1 apple apple
+
+ls -la /home/apple/.config/systemd/user/pipa.service
+# 期望: -rw-r--r-- 1 apple apple (middleware 渲染时已 sudo -u 写)
+
+ls -la /home/apple/.panda
+# 期望: drwx------ 6 apple apple (middleware _ensure_panda_home 建)
+
+# 1.4 验证 apple 的 daemon accept-ready(不是 stale socket)
 midclt call pipa.status
-# 期望: {"socket_exists": true, "daemon_reachable": true, "socket_path": "/run/pipa/pipa.sock"}
+# 期望: daemon_reachable: true
 
-# 2.3 验证插件路由确实挂上
-curl -s http://127.0.0.1:6000/_plugins/pipa/ws -i | head -1
-# 期望: HTTP/1.1 426 Upgrade Required  (curl 不带 Upgrade 头)
-
-# 2.4 验证 CRUD 接口
-midclt call pipa.user_prefs.query
-# 期望: []  (没人配过)
+# 1.5 用 banana 重复 1.2-1.4
+#     然后再跑一次 ps,期望 2 行
+ps -eo pid,rss,user,args --no-headers | grep '[p]anda-app-server.*--listen unix:///run/user/'
+# 期望: 2 行,user=apple + user=banana
+# 实测: 2 daemon 总 RSS ~80-120 MB
 ```
 
 **失败排查**:
 
 | 症状 | 排查 |
 |------|------|
-| `CallError: method pipa.status not found` | middleware 没重启 / plugin 没加载,看 `journalctl -u middlewared | grep pipa` |
-| `daemon_reachable: false` 但 socket 存在 | `journalctl -u pipa -n 10` 看 daemon 是不是 panic 了 |
-| `426 Upgrade Required` 但 WS 实际握手不上 | middleware 没到 mount,确认 `setup()` 被调用了 |
-| alembic migration 没跑 | `midclt call datastore.query pipa_user_prefs` 报表不存在 → `cd middleware && make migrate` |
+| `machinectl shell` 报 `Permission denied` | `apple` 用户不在 `users` 组,`usermod -aG users apple` |
+| `_write_unit_file` 卡住 | `sudo -u apple tee` 失败,看 `journalctl -u middlewared` 的 supervisor 警告 |
+| socket 文件出现但 `daemon_reachable: false` | `journalctl --user -u pipa.service -M apple@.host -n 30` 看 daemon 启动日志 |
+| `_wait_socket` 超时(5-10s) | pandacode 启动慢,首次启动 + workspace load 可能 5-8s,确认 `_wait_socket(timeout=10.0)` 生效 |
+| daemon 跑了几秒就退出 | 看 `~/.panda/logs/` 的 sqlite;最常见是 API key 无效触发的 panic |
+| apple 能起,banana 起不来 | 第二个用户的 home 目录权限错位,`sudo -u banana ls /home/banana` 检查 |
 
 ---
 
-## 3. Sprint 3:webdesktop SDK + apps/pipa + Cmd+K
+## 2. 流式通道:main RPC event channel 单播
+
+**目标**:webdesktop SDK 通过 `pipa.stream.connect` + 订阅 `pipa.stream` event channel,
+拿到 daemon 的 NDJSON 帧;浏览器 DevTools 看到 WS 主连接 `/api/current`,
+**而不是**任何 `/_plugins/pipa/ws` 独立 WS 端点。
+
+```bash
+# 2.1 验证 main RPC 端点存在
+midclt call pipa.stream.connect 2>&1 | head -3
+# 期望: 返回 true (Literal[True])
+
+# 2.2 验证 event channel 已注册
+midclt call core.get_events | python3 -c "import sys,json; d=json.load(sys.stdin); print([e['name'] for e in d if 'pipa' in e['name']])"
+# 期望: ['pipa.stream']
+
+# 2.3 (用 apple 登录浏览器) Cmd+K → QuickPipaDialog 弹窗
+#     右上角 badge 应是绿色 ● 就绪;若灰 → daemon unreachable,回到 §1 排查
+```
+
+**失败排查**:
+
+| 症状 | 排查 |
+|------|------|
+| `CallError: pipa.stream.connect method not found` | middleware 没重启 / plugin 没加载,`journalctl -u middlewared \| grep pipa` |
+| `CallError: Pipa daemon for uid N not reachable` | 回到 §1 — supervisor `_wait_socket` 超时 |
+| 弹窗 "AI 助手暂未就绪" | daemon unreachable;`midclt call pipa.status` 看字段 |
+| DevTools 看到 `_plugins/pipa/ws` 连接 | **错的** — 当前架构走主 RPC;说明前端在用老版本,SPA 需 Ctrl+Shift+R 硬刷 |
+
+---
+
+## 3. webdesktop SDK + apps/pipa + Cmd+K
 
 **目标**:浏览器开 webdesktop → Cmd+K → 输入"hello" → 收到 AI 流式回复。
 
@@ -118,9 +143,10 @@ sudo ln -sf /home/truenas_admin/work/OpenNAS/webdesktop/dist /usr/share/truenas-
 # 3.2 重启 webserver (假设 nginx 反代)
 systemctl restart nginx  # 或 caddy
 
-# 3.3 浏览器:打开 https://<nas>/,登录 root 或某用户
+# 3.3 浏览器:打开 https://<nas>/,登录 root 或 apple
 # 3.4 按 Cmd+K (macOS) 或 Ctrl+K (Linux/Windows)
 #     期望:右下角弹一个浮动输入框 "和 Pipa 聊聊..."
+#     或 Taskbar 上的机器人图标
 
 # 3.5 探测 daemon 是否就绪(弹窗右上角 badge)
 #     期望: ● 就绪 (绿色);若灰色 → daemon unreachable
@@ -131,18 +157,14 @@ systemctl restart nginx  # 或 caddy
 # 3.7 等 AI 回复
 #     期望:消息流式出现(逐字/逐词),完成后停止
 
-# 3.8 DevTools → Network → WS → 看连接
-#     URL: wss://<nas>/_plugins/pipa/ws
+# 3.8 DevTools → Network → WS → 看**主**连接
+#     URL: wss://<nas>/api/current
 #     Status: 101 Switching Protocols
-#     Messages 标签:
-#       {"jsonrpc":"2.0","id":0,"method":"initialize",...}
-#       → 服务端 ack
-#       客户端 → {"jsonrpc":"2.0","method":"initialized"}
-#       → {"jsonrpc":"2.0","id":1,"method":"thread/start",...}
-#       → {"jsonrpc":"2.0","id":2,"method":"turn/start",...}
-#       ← {"jsonrpc":"2.0","method":"item/agentMessage/delta","params":{"delta":"Hi"}}
-#       ← ... 更多 delta
-#       ← {"jsonrpc":"2.0","method":"turn/completed",...}
+#     Messages 标签**只看到主 RPC 帧**(core.subscribe / core.call 等)
+#
+# 3.9 同时打开 DevTools → Console,过滤 'pipa'
+#     期望: 看到 ['pipa.stream'] event delivery (fields.frame 里有 daemon 的 NDJSON)
+#            initialize 握手由 middleware 代发,SDK 不发自己的 initialize
 ```
 
 **失败排查**:
@@ -151,13 +173,13 @@ systemctl restart nginx  # 或 caddy
 |------|------|
 | Cmd+K 没反应 | 看 `~/.xsession-errors` 或 DevTools console,有 JS 报错 |
 | 弹窗 "AI 助手暂未就绪" | `midclt call pipa.status` 看 daemon_reachable |
-| 弹窗 OK,apps/pipa 打开但一直转圈 | DevTools WS 没握上手,看 Network panel 的 404/403 |
-| 流式回复卡顿/丢失 | `journalctl -u middlewared -f` 看 panda-app-server 日志 |
-| 全程无回复但 daemon 活着 | AI provider 的 key 没配,见 Sprint 4 |
+| 弹窗 OK,apps/pipa 打开但一直转圈 | DevTools WS 主连接没握上,看 Network panel 的 404/403 |
+| 流式回复卡顿/丢失 | `journalctl -u middlewared -f` + `journalctl --user -u pipa.service -M apple@.host -f` |
+| 全程无回复但 daemon 活着 | AI provider 的 key 没配,见 §4 |
 
 ---
 
-## 4. Sprint 4:Settings + EncryptedText API key
+## 4. Settings + EncryptedText API key
 
 **目标**:填 openai API key → DB 里是密文 → 重启 webdesktop 仍 `api_key_set=true`。
 
@@ -168,13 +190,13 @@ systemctl restart nginx  # 或 caddy
 #     在 API Key 输入框填入你的 openai key (sk-...)
 
 # 4.3 点 "测试连接" 按钮
-#     期望:右侧出现绿色 ✓ (testProvider 走 panda-app-server model/list round-trip)
+#     期望:右侧出现绿色 ✓ (走 pipa.test_provider → transient session → model/list)
 
 # 4.4 点 "保存"
 #     期望:绿色 "已保存" toast,API key 输入框被清空(本地不残留)
 
 # 4.5 直查 DB 看密文(不要查磁盘 log)
-sudo sqlite3 /var/db/system/sysdb/sysdb.db \
+sudo sqlite3 /data/freenas-v1.db \
   "SELECT id, user_id, provider, model, substr(api_key_encrypted, 1, 30) FROM pipa_user_prefs"
 # 期望: api_key_encrypted 是 "0ENC..." / "!..." / 长 base64 之类,**不含 "sk-"**
 
@@ -191,7 +213,7 @@ journalctl -u middlewared --since "5 min ago" --no-pager | grep -i "pipa"
 
 # 4.8 (可选)清空测试
 # 在 Settings 里 API Key 框输入空字符串 + 保存
-sudo sqlite3 /var/db/system/sysdb/sysdb.db \
+sudo sqlite3 /data/freenas-v1.db \
   "SELECT api_key_encrypted FROM pipa_user_prefs"
 # 期望: NULL
 ```
@@ -200,12 +222,11 @@ sudo sqlite3 /var/db/system/sysdb/sysdb.db \
 
 | 症状 | 排查 |
 |------|------|
-| 找不到 sysdb.db | `find / -name "sysdb.db" 2>/dev/null`;TrueNAS SCALE 可能在 `/data/` |
 | `api_key_encrypted` 是明文 | 致命安全 bug — EncryptedText column 没生效,看 §"EncryptedText 调试" |
-| 测试连接失败但 daemon 活着 | key 无效;curl https://api.openai.com/v1/models -H "Authorization: Bearer $KEY" 先验证 |
+| 测试连接失败但 daemon 活着 | key 无效;`curl https://api.openai.com/v1/models -H "Authorization: Bearer $KEY"` 先验证 |
 | 没看到审计 log | middleware 没重启用新版,确认 `make reinstall` 而不是 `make install` |
 
-### EncryptedText 调试 (Sprint 4 深度排查)
+### EncryptedText 调试 (§4 深度排查)
 
 如果 `api_key_encrypted` 是明文,说明 SQLAlchemy column type 没生效:
 
@@ -240,71 +261,62 @@ print(encrypt('sk-test-123'))
 
 ---
 
-## 5. Sprint 5:FastConnect 隧道
+## 5. 多用户隔离回归
 
-**目标**:远端浏览器走 portal 域名,Cmd+K 弹窗 + 对话正常。
+**目标**:alice 的 `~/.panda/` 对 bob 不可见,thread store / auth.json / config.toml 隔离。
 
 ```bash
-# 5.1 (前置)portal.fastconnect.host + 此 NAS 都已注册
-#     portal 端:
-curl -s https://portal.fastconnect.host/api/v1/lookup/qc-xxx \
-  -H "Authorization: Bearer $USER_JWT"
-# 期望: status: ONLINE
+# 5.1 (前置)alice 和 banana 都触发过 Cmd+K(各自 daemon 都在跑)
 
-# 5.2 NAS 端 tunnel 在线
-midclt call tn_connect.status | head -20
-# 期望: state: CONNECTED, last_error: null
+# 5.2 alice 的 panda home 对 banana 不可读
+sudo -u banana ls /home/alice/.panda
+# 期望: Permission denied (kernel UID 隔离兜底)
 
-# 5.3 在远端浏览器(手机/家外网络):
-#     打开 https://qc-xxx.fastconnect.host/
-#     登录 webdesktop (走 NAS user login,不要 portal login)
+# 5.3 alice 的 daemon 进程只看 alice 的 home
+ls -l /proc/<alice-pid>/cwd
+# 期望: /home/alice(daemon 进程的 cwd 由 systemd --user 上下文决定)
 
-# 5.4 DevTools → Network → 测 WS 握手:
-#     手动连 wss://qc-xxx.fastconnect.host/_plugins/pipa/ws
-#     期望:101 Switching Protocols
-#     若 404: portal 路由没起来,看 fastconnect 端 `docker compose logs portal`
+# 5.4 alice 用 QuickPipaDialog 开新 thread,然后 banana 也开新 thread
+#     两个 thread id 不重叠,alice 看不到 banana 的 thread,反之亦然
 
-# 5.5 DevTools → Application → 看 fastconnect 是否注入了 Sec-WebSocket-Protocol: bearer
+# 5.5 重启 alice 的 daemon,验证 thread store 重置(per-user 进程隔离)
+sudo machinectl shell alice@.host /usr/bin/systemctl --user restart pipa.service
+# 等 3s,alice 再开 Cmd+K,期望 thread 列表空了(或只剩 restart 之前已存档的)
 
-# 5.6 Cmd+K 弹窗 + "hello" 对话
-#     期望:跟 Sprint 3 本机行为一致
-
-# 5.7 (诊断)三层日志
-journalctl -u middlewared -f | grep -i "pipa"      # NAS middleware
-journalctl -u tn_connect -f | grep -i "tunnel"     # NAS tunnel
-docker compose -f fastconnect/docker-compose.prod.yml logs -f portal | grep -i "_plugins\|path"
-# 期望:NAS 看到 path=/_plugins/pipa/ws;portal 看到 forward 成功
+# 5.6 重启 middlewared 期间 per-user daemon **不挂**
+sudo systemctl restart middlewared
+# 等 5s,alice 仍能 Cmd+K 直接对话(systemd --user instance 维持)
+midclt call pipa.status
+# 期望: daemon_reachable: true
 ```
 
 **失败排查**:
 
 | 症状 | 排查 |
 |------|------|
-| 远端 `/_plugins/pipa/ws` 404 | FastAPI 路由没注册,看 `docker compose logs portal | grep browser_ws` |
-| 404 但 fastconnect 端看到 `_plugins/` 已注册 | Caddyfile 把 `/_plugins/` 反代到了别的 backend |
-| 远端 `WS 握手 1008 invalid host` | portal 反代没把 Host header 透传,看 nginx/caddy `proxy_set_header Host $host` |
-| 远端 WS 握手 OK 但消息无回复 | `tn_connect.status` 看 tunnel 是不是断的 |
-| 看到 `1011 Device offline` | NAS tunnel 没连 portal,重启 `systemctl restart middlewared` 触发重连 |
+| banana 能 ls 进 alice 的 `~/.panda` | 权限错位,`stat /home/alice/.panda` 看 mode 应是 0700 owner=alice |
+| alice 看到 banana 的 thread | per-user daemon 进程隔离失效,确认 `ps -eo user,pid,args` 里两个 daemon 真的 user=alice/user=banana |
+| 重启 middlewared 后 daemon unreachable | linger 没开(用户登出导致 systemd --user instance 跟着停),`loginctl show-user <uid> Linger=` |
 
 ---
 
 ## 6. 自动化一键脚本
 
-如果想一次跑完所有 sprint 的 sanity check:
+如果想一次跑完所有 sanity check:
 
 ```bash
 # (在 NAS 上,root 用户)
 bash /home/truenas_admin/work/OpenNAS/tools/check-pipa-status.sh
 ```
 
-这个脚本会跑:
-- `systemctl is-active pipa middlewared`
-- `ls -l /run/pipa/pipa.sock`
-- `midclt call pipa.status`
+这个脚本应该覆盖:
+- `systemctl is-active middlewared`(系统 unit,应该 active)
+- `systemctl status pipa.service`(系统 unit,**应该 NOT found**)
+- `ps -eo user,pid,args | grep '[p]anda-app-server.*--listen unix:///run/user/'`(per-user daemon 列表)
+- `ls -la /run/user/*/pipa.sock`(per-user socket 列表)
+- `midclt call pipa.status`(per-caller 状态)
 - `midclt call pipa.user_prefs.query | head`
-- `curl -s -i http://127.0.0.1:6000/_plugins/pipa/ws | head -1`
-- DB 加密验证 (SELECT substr api_key_encrypted)
-- `tn_connect.status`(Sprint 5 才有意义)
+- DB 加密验证 (`SELECT substr api_key_encrypted`)
 
 期望输出:全 ✓ + 1 行总结。
 
@@ -316,13 +328,20 @@ bash /home/truenas_admin/work/OpenNAS/tools/check-pipa-status.sh
 
 ```
 TrueNAS SCALE 版本: cat /etc/os-release | head -3
-Sprint: (1/2/3/4/5)
+Slice: (1 / 2 / 3 / 4 / 5)
+触发用户: (具体哪个 TrueNAS 用户触发了)
 失败点: (具体哪个命令/操作)
 期望: (应该看到什么)
 实际: (看到了什么)
-journal 摘录: journalctl -u <pipa|middlewared|tn_connect> --since "5 min ago" --no-pager | tail -50
+
+Per-user daemon 日志(关键):
+  sudo journalctl --user -u pipa.service -M <user>@.host --since "5 min ago" --no-pager | tail -50
+
+Middleware 日志:
+  sudo journalctl -u middlewared --since "5 min ago" --no-pager | tail -50
+
 前端 console 报错: (浏览器 DevTools → Console)
-WS 帧序列: (DevTools → Network → WS → Messages 标签导出)
+WS 帧序列: (DevTools → Network → WS → Messages 标签,**只看主连接 /api/current**)
 DB 状态: SELECT * FROM pipa_user_prefs (脱敏,不含 api_key 明文)
 ```
 
@@ -330,7 +349,9 @@ DB 状态: SELECT * FROM pipa_user_prefs (脱敏,不含 api_key 明文)
 
 ## 参考
 
-- `docs/fastconnect-pipa-tunnel.md` — Sprint 5 远端接入详情
-- `middleware/.../plugins/pipa.py` — 全栈 plugin 入口
+- `docs/pipa-deploy-on-this-nas.md` — 部署流程
+- `docs/fastconnect-pipa-tunnel.md` — FastConnect 远端接入
+- `middleware/.../plugins/pipa.py` — middleware 业务侧(stream + status + provider)
+- `middleware/.../plugins/pipa_supervisor.py` — per-user daemon supervisor
 - `webdesktop/src/shared/sdk/pipa.ts` — 浏览器 SDK
-- `pandacode/Makefile` + `debian/` — deb 打包
+- `pandacode/Makefile` + `debian/` — deb 打包(无 systemd 单元)

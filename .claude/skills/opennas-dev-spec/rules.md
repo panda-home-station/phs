@@ -181,11 +181,12 @@ class PipaUserPrefsEntry(BaseModel):
 
 ---
 
-## §5 Multi-user 隔离: per-connection $PANDA_HOME
+## §5 Multi-user 隔离: per-user daemon + per-connection userHome
 
 **Rule**:
 - 全局 `CODEX_HOME` / `PANDA_HOME` ❌ —— 多用户共享会互相污染
-- 每个 WS 连接用独立 `user_home` ✓
+- 每用户独立 daemon(进程级隔离),`PANDA_HOME=%h/.panda` 写到 per-user unit 里 ✓
+- middleware 在 `pipa.stream.connect` 里把 caller 的 `pw_dir/.panda` 塞进 initialize 帧的 `userHome` 字段,**为未来 per-request HOME 切换留口子**,不是当下隔离机制
 
 ### 模板
 
@@ -194,16 +195,19 @@ class PipaUserPrefsEntry(BaseModel):
 async def connect(self, app):
     creds = app.authenticated_credentials
     user = creds['username']
-    user_home = self._user_home_for(user)  # /home/<user>
+    user_home = self._user_home_for(user)  # /home/<user>/.panda
     await self._open_panda_session(user_home=user_home)
+    # 现在 userHome == per-user daemon 的 PANDA_HOME(同一用户所有 connection 共享)
+    # daemon 端无需代码改动即可在未来切换到真正 per-request HOME
 ```
 
 ### pandacode daemon 配置
 
-```bash
-# /etc/panda-app-server/<user>.env
-PANDA_HOME=/home/<user>/.panda
-# systemd unit 用 Environment=%PANDA_HOME=/home/%i/.panda
+```ini
+# per-user systemd unit(middleware 渲染到 ~/.config/systemd/user/pipa.service)
+[Service]
+Environment=PANDA_HOME=%h/.panda
+ExecStart=/usr/sbin/panda-app-server --listen unix:///run/user/%U/pipa.sock
 ```
 
 ---
@@ -316,7 +320,7 @@ tools/deploy-nas.sh --target webdesktop   # SPA
 
 ```bash
 sudo journalctl -u middlewared -n 30 --no-pager
-sudo journalctl -u pipa -n 30 --no-pager
+sudo journalctl --user -u pipa.service -M <user>@.host -n 30 --no-pager
 sudo journalctl -u nginx -n 30 --no-pager
 sqlite3 /data/freenas-v1.db "SELECT version_num FROM alembic_version;"
 ```
@@ -471,46 +475,77 @@ browser (webdesktop)
 
 ### 为什么
 
-pandacode 0.1.0 之前用 `CODEX_HOME`,跟我们 monorepo 命名不一致。改成 `PANDA_HOME`:
-- systemd 单元 `Environment=PANDA_HOME=/var/lib/panda/...`
-- `StateDirectory=panda` 而不是 `codex`
-- `ProtectHome=yes` 配合 `ReadWritePaths=/var/lib/panda`
+pandacode 0.1.0 之前用 `CODEX_HOME`,跟我们 monorepo 命名不一致。改成 `PANDA_HOME`。
 
-### systemd unit 检查清单
+### per-user daemon 的 unit 模板(middleware 渲染,不是 deb 装)
+
+pandacode deb **不再 ship 任何 systemd 单元**。`PANDA_HOME` 由
+per-user unit 在 `~/.config/systemd/user/pipa.service` 里 `Environment=PANDA_HOME=%h/.panda`
+指定,`%h` 展开为该用户的 home 目录。**不存在** `/var/lib/panda` 这种系统级路径。
 
 ```ini
 [Service]
-Environment=PANDA_HOME=/var/lib/panda
-StateDirectory=panda
-RuntimeDirectory=panda
-ProtectHome=yes
-ReadWritePaths=/var/lib/panda /run/panda
+Environment=PANDA_HOME=%h/.panda
+ExecStart=/usr/sbin/panda-app-server --listen unix:///run/user/%U/pipa.sock
+# ProtectHome INTENTIONALLY OMITTED — per-user daemon needs R/W ~/.panda
 ```
 
 ### per-connection 覆盖
 
-通过 `core/init` `InitializeParams.userHome` 临时覆盖(每个 WS session 的 user_home),而不是改全局 `PANDA_HOME`。否则多用户共享同一 home 会污染状态。
+通过 `initialize.userHome` 临时覆盖(每个 WS session 的 user_home),而不是改全局 `PANDA_HOME`。
+当前架构下 per-connection `userHome == daemon-global PANDA_HOME`(每个用户一个 daemon,
+启动时 read 自己的 `~/.panda/`),middleware 在 `pipa.stream.connect` 里把 `pw_dir/.panda`
+塞进 initialize 帧,daemon 端无需任何代码改动即可在未来切到真正的 per-request HOME。
 
 ---
 
-## §15 systemd unit packaging: 绑 binary 不绑 service
+## §15 systemd unit packaging: Pipa 不绑 service 到任何 deb
 
-**Rule**: `*.service` 文件**绑在 binary 所在 deb**,而不是中间件 deb 之类。
+**Rule**: pipa **不绑任何 systemd 单元到 deb**。per-user daemon 的 unit
+由 middleware 在每次 `pipa.stream.connect` 时按 caller UID 渲染并 `sudo -u <user> tee` 写入
+`~/.config/systemd/user/pipa.service`,然后用 `machinectl shell <user>@.host systemctl --user start`
+拉起。pandacode deb 只装二进制,deb 的 postinst 是 no-op(无 daemon-reload,无 systemctl 调用)。
 
 ### 决定
 
-| 单元 | 跟哪 deb |
-|------|----------|
-| `panda-app-server.service` (or `pipa.service`) | `panda-app-server` deb (pandacode) |
-| `middlewared.service` | `middlewared` deb (middleware) |
-| `nginx.service` | `nginx` deb (system) |
+| 单元 | 谁负责 |
+|------|--------|
+| `~/.config/systemd/user/pipa.service`(per-user) | middleware `PipaSupervisorService._write_unit_file` 渲染并写 |
+| `~/.panda/`(per-user data dir) | middleware `PipaSupervisorService._ensure_panda_home` `sudo -u <user> mkdir -p -m 0700` |
+| `/run/user/<uid>/pipa.sock`(per-user socket) | systemd `RuntimeDirectory=pipa` 自动建,daemon 自己 bind |
+| 系统级 `pipa.service` / `/run/pipa/` / `/var/lib/panda/` | **不存在** — pandacode deb 完全不 ship |
 
 ### 为什么
 
-- `dh_installsystemd` 自动从 `<src>/debian/<package>.<service>.service` 复制单元到 `/lib/systemd/system/`
-- 装 daemon deb 时**同时**装它的 .service,装上 middleware deb 时**同时**触发 `systemctl enable --now`
-- 卸 deb 时 `dh_installsystemd --no-enable` 自动 unregister
-- 跨 deb 装 .service = 卸 deb 时只卸一半,文件残留
+- 每用户 daemon = per-user singletons(`AuthManager` / `ConfigManager` / thread store),
+  进程隔离天然兜底,无需 systemd 单元层面再做隔离
+- 真 UID 隔离:daemon 进程跑在该用户自己的 `systemd --user` instance 下,UID = caller,
+  `~/.panda/` mode 0700 由 kernel 文件权限兜底
+- pandacode 仓库**零代码改动**:pandacode daemon 早已支持 `--listen unix:///path`
+  + `user_home` initialize 参数,supervisor 不用改 daemon
+- middleware 不动 `main.py` 的 `pre_freeze_setup`(避免 Slice 0 raw WS 路径的踩坑)
+
+### deb 侧的 no-op 标记
+
+```makefile
+# pandacode/Makefile 重装链 — 无 systemctl 调用
+reinstall: clean build_deb install
+
+# pandacode/debian/rules — dh_installsystemd 显式 override 为 no-op
+override_dh_installsystemd:
+	# No system unit shipped — per-user daemon is supervised by middleware.
+	true
+```
+
+```sh
+# pandacode/debian/postinst — configure 分支是空 :
+case "$1" in
+    configure)
+        # Intentionally empty — see header comment.
+        :
+```
+
+如果看到这些 no-op 被填充回去,review 必须 reject。
 
 ### 装 deb 后的 3-check 验证
 
