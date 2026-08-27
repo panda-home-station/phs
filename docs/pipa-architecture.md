@@ -1220,7 +1220,11 @@ Pipa 走主 RPC event channel，FastConnect 隧道对路径透明。
 
 ## 9. 验证清单
 
-### 9.1 Slice 1（PASS 2026-08-25）
+### 9.1 详细验证场景
+
+按步骤的完整验收(per-user 拉起链路 / 流式通道 / SDK / EncryptedText / 多用户隔离回归 / 失败排查表)见 [pipa-test-runbook.md](./pipa-test-runbook.md)。
+
+### 9.2 Slice 1 PASS 速查
 
 ```bash
 # 1. 基础设施
@@ -1237,43 +1241,15 @@ cd /home/truenas_admin/work/OpenNAS
 systemctl status pipa.service
 # expect: Unit pipa.service could not be found.
 
-# 4. webdesktop Cmd+K → 触发第一个用户的 daemon
-ls -la /home/apple/.config/systemd/user/pipa.service
-# expect: -rw-r--r-- 1 apple apple
-ls -la /run/user/1001/pipa.sock
-# expect: srw------- 1 apple apple
-ps -o pid,user,rss,comm -C panda-app-server
-# expect: 1 process, user apple
+# 4. 触发两个用户并发 + 验证 daemon + socket + unit + ~/.panda/ 隔离
+# 详见 test-runbook §1(per-user daemon 拉起链路) + §5(多用户隔离回归)
 
-# 5. 第二用户并发
-# 用 banana 登录开 Cmd+K
-ps -o pid,user,rss,comm -C panda-app-server
-# expect: 2 processes, users apple + banana
-# 测得 3 个并发 daemon 总 RSS ~114 MB,每 daemon 36-40 MB
-
-# 6. 日志分用户
-journalctl --user -M apple@.host -u pipa.service -f
-journalctl --user -M banana@.host -u pipa.service -f
-
-# 7. status probe
+# 5. status probe
 midclt call pipa.status            # 返回自己的 daemon 状态(per-caller)
 midclt call pipa.supervisor.status 1001   # admin 查 apple(需 PIPA_READ 角色)
-midclt call pipa.supervisor.status 1002   # admin 查 banana
-
-# 8. restart-survival
-ssh apple@nas 'systemctl --user stop pipa.service'
-# 然后再触发 pipa.stream.connect
-ls -la /run/user/1001/pipa.sock   # supervisor 重启 daemon,reappears
-
-# 9. 隔离
-sudo -u banana ls /home/apple/.panda
-# expect: Permission denied(UID 隔离生效)
-
-# 10. CRUD 仍然工作
-midclt call pipa.user_prefs.query '[[]]' '{}'
 ```
 
-### 9.2 Slice 2（每个 Sprint 必过）
+### 9.3 Slice 2 Sprint 必过
 
 - [ ] `~/.panda/auth.json` 是 sole source of truth（API key 不再双写）
 - [ ] `pipa_user_prefs.api_key_encrypted` 列删除后所有调用正常
@@ -1281,13 +1257,13 @@ midclt call pipa.user_prefs.query '[[]]' '{}'
 - [ ] idle N 分钟后 daemon 自动 stop，下次 connect 自动拉起
 - [ ] `/var/lib/panda/<sanitized>/` 历史数据已迁移到 `~/.panda/`
 
-### 9.3 后续方向（关键回归）
+### 9.4 后续方向(关键回归)
 
 - [ ] alert 自动触发 AI 解释
 - [ ] 高危操作自动弹审批 modal
 - [ ] apple 的 thread 列表对 banana 不可见（process 隔离已天然满足，但加回归测试）
 
-### 9.4 通用跨 Slice 必过
+### 9.5 通用跨 Slice 必过
 
 - [ ] `pipa.status` 返回 `daemon_reachable: true`
 - [ ] API key 永不明文（grep middleware DB 不出现 `sk-` 前缀明文）

@@ -177,18 +177,7 @@ midclt call pipa.supervisor.status <uid>
 
 ## 端到端人工验收
 
-| 步骤 | 操作 | 期望 |
-|------|------|------|
-| 1 | 浏览器开 `https://<nas>/`,登录 webdesktop | SPA 加载,可见 apps 列表 |
-| 2 | 按 `Cmd/Ctrl+K` **或** Taskbar 机器人图标 | 弹窗 "和 Pipa 聊聊..." 浮现,右上角 `● 就绪` 绿点 |
-| 3 | 输入 "hello" + Enter | apps/pipa 窗口打开,流式回复(若 provider/API key 已配) |
-| 4 | DevTools → Network → WS | URL = `wss://<nas>/api/current`,Status 101;`pipa.stream` 事件帧在 messages 里 |
-| 5 | apps/pipa → Settings → 填 openai key → 保存 | 绿色 "已保存" toast |
-| 6 | `sqlite3 /data/freenas-v1.db "SELECT substr(api_key_encrypted,1,30) FROM pipa_user_prefs"` | 不是明文 `sk-...` |
-| 7 | `journalctl --user -u pipa.service -M <user>@.host --since "5 min ago"` | 看到 daemon stdout,无 `sk-` 明文 |
-| 8 | 用第二个 TrueNAS 用户登录重复 1-7 | 两条 daemon 进程(`ps` 见 2 行,各 `--listen unix:///run/user/<不同 uid>/pipa.sock`) |
-| 9 | 用户 A 用 `sudo -u <user-b> ls /home/<user-a>/.panda` | `Permission denied`(UID 隔离) |
-| 10 | `systemctl stop middlewared && sleep 5 && systemctl start middlewared` | 重启期间 per-user daemon **不挂**(systemd --user instance 维持);webdesktop 重连后 `pipa.status` 仍 `daemon_reachable: true` |
+完整 10 步人工验收(浏览器 → Cmd+K → 流式 → Settings → DB → 多用户隔离 → middleware 重启存活)见 [pipa-test-runbook.md §3-§5](./pipa-test-runbook.md)。
 
 ---
 
