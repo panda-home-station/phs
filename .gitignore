@@ -12,6 +12,7 @@ tools
 *.deb
 *.buildinfo
 *.changes
+node_modules/
 
 
 # repo
